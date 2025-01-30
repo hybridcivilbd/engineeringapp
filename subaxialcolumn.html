@@ -1,0 +1,50 @@
+<div class="column-container"> 
+    <h2>Reinforced Concrete Column Design (ACI 318-19)</h2>
+    <div class="input-group">
+        <label for="load">Axial Load (Ton):</label>
+        <input type="number" id="load" placeholder="Enter axial load in tons">
+    </div>
+    <div class="input-group">
+        <label for="fc">Concrete Strength (MPa):</label>
+        <input type="number" id="fc" placeholder="Enter fc in MPa">
+    </div>
+    <div class="input-group">
+        <label for="fy">Steel Yield Strength (MPa):</label>
+        <input type="number" id="fy" placeholder="Enter fy in MPa">
+    </div>
+    <button onclick="designColumn()">Design Column</button>
+    <div class="output" id="output">
+        <h3>Design Output</h3>
+        <p>Column Size: <span id="columnSize"></span></p>
+        <p>Vertical Reinforcement: <span id="verticalReinforcement"></span></p>
+        <p>Stirrup Spacing (Edge): <span id="stirrupEdge"></span></p>
+        <p>Stirrup Spacing (Middle): <span id="stirrupMiddle"></span></p>
+    </div>
+</div>
+
+<script>
+    function designColumn() {
+        const load = parseFloat(document.getElementById('load').value) * 9.80665;
+        const fc = parseFloat(document.getElementById('fc').value);
+        const fy = parseFloat(document.getElementById('fy').value);
+        const phi = 0.65;
+        const rho = 0.02;
+
+        const Ag = (load * 1000) / (phi * (0.85 * fc + (fy - 0.85 * fc) * rho));
+        const side = Math.sqrt(Ag);
+        const columnSize = Math.ceil(side / 50) * 50;
+
+        const Ast = rho * Ag;
+        const barSize = 16;
+        const barArea = Math.PI * Math.pow(barSize / 2, 2);
+        const numBars = Math.ceil(Ast / barArea);
+
+        const stirrupEdge = Math.min(columnSize / 2, 16 * barSize, 300);
+        const stirrupMiddle = Math.min(columnSize, 24 * barSize, 300);
+
+        document.getElementById('columnSize').textContent = `${columnSize} mm x ${columnSize} mm`;
+        document.getElementById('verticalReinforcement').textContent = `${numBars} nos ${barSize} mm steel`;
+        document.getElementById('stirrupEdge').textContent = `${stirrupEdge} mm`;
+        document.getElementById('stirrupMiddle').textContent = `${stirrupMiddle} mm`;
+    }
+</script>
