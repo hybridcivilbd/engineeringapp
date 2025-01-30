@@ -126,11 +126,12 @@
             loadPage(event, location.pathname);
         });
 
-        // Load initial page
-        window.onload = () => {
-            const initialPage = 'pages/subaxialcolumn.html';
-            loadPage(event, initialPage);
-        };
+// Corrected window.onload
+window.onload = () => {
+    const initialPage = 'pages/subaxialcolumn.html';
+    loadPage({ preventDefault: () => {} }, initialPage);  // Simulate an empty event
+};
+
     </script>
 </body>
 </html>
