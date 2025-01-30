@@ -3,169 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Civil Engineering Calculation Page</title>
+    <title>Structural Design Calculator Suite</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            background-color: #f0f2f5;
         }
-        h1, h2 {
-            text-align: center;
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
         }
-        .form-container {
-            margin: 20px 0;
-        }
-        label, input {
-            display: block;
-            margin: 10px 0;
-        }
-        input[type="number"] {
-            width: 200px;
-        }
-        button {
-            padding: 10px;
-            background-color: #4CAF50;
+
+        .sidebar {
+            background-color: #2c3e50;
+            padding: 20px;
             color: white;
-            border: none;
-            cursor: pointer;
         }
-        button:hover {
-            background-color: #45a049;
+
+        .main-content {
+            padding: 30px;
+            background-color: white;
         }
-        .result {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #f0f0f0;
-            border: 1px solid #ccc;
+
+        .design-list {
+            list-style: none;
+        }
+
+        .design-list li {
+            margin: 15px 0;
+        }
+
+        .design-list a {
+            color: #ecf0f1;
+            text-decoration: none;
+            font-size: 1.1em;
+            transition: color 0.3s;
+        }
+
+        .design-list a:hover {
+            color: #3498db;
+        }
+
+        .design-section {
+            display: none;
+        }
+
+        .design-section.active {
+            display: block;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-bottom: 20px;
+        }
+
+        .calculator-placeholder {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .active-link {
+            color: #3498db !important;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Civil Engineering Design Calculations</h1>
+    <div class="container">
+        <nav class="sidebar">
+            <h1>Structural Design</h1>
+            <ul class="design-list">
+                <li><a href="#sub-axial" onclick="showSection('sub-axial')">Sub-Axial Column</a></li>
+                <li><a href="#uni-axial" onclick="showSection('uni-axial')">Uni-Axial Column</a></li>
+                <li><a href="#bi-axial" onclick="showSection('bi-axial')">Bi-Axial Column</a></li>
+                <li><a href="#grade-beam" onclick="showSection('grade-beam')">Grade Beam</a></li>
+                <li><a href="#floor-beam" onclick="showSection('floor-beam')">Floor Beam</a></li>
+                <li><a href="#slab" onclick="showSection('slab')">Slab Design</a></li>
+                <li><a href="#pile" onclick="showSection('pile')">Pile Design</a></li>
+                <li><a href="#pile-cap" onclick="showSection('pile-cap')">Pile Cap</a></li>
+                <li><a href="#footing" onclick="showSection('footing')">Footing Design</a></li>
+            </ul>
+        </nav>
 
-    <!-- Column Design -->
-    <div class="form-container">
-        <h2>Column Design</h2>
-        <label for="column-area">Column Area (m²):</label>
-        <input type="number" id="column-area" placeholder="Enter area in m²">
-        <label for="compressive-strength">Compressive Strength (MPa):</label>
-        <input type="number" id="compressive-strength" placeholder="Enter compressive strength">
-        <button onclick="calculateColumn()">Calculate Load Capacity</button>
-        <div id="column-result" class="result"></div>
-    </div>
+        <main class="main-content">
+            <!-- Sub-Axial Column Design -->
+            <section id="sub-axial" class="design-section active">
+                <h2>Sub-Axial Column Design</h2>
+                <div class="calculator-placeholder">
+                    <!-- Add your sub-axial column calculator here -->
+                    <p>Sub-axial column design calculator (Coming Soon)</p>
+                </div>
+            </section>
 
-    <!-- Grade Beam Design -->
-    <div class="form-container">
-        <h2>Grade Beam Design</h2>
-        <label for="bending-stress">Bending Stress (MPa):</label>
-        <input type="number" id="bending-stress" placeholder="Enter bending stress">
-        <label for="moment-of-inertia">Moment of Inertia (m⁴):</label>
-        <input type="number" id="moment-of-inertia" placeholder="Enter moment of inertia">
-        <button onclick="calculateGradeBeam()">Calculate Bending Moment</button>
-        <div id="grade-beam-result" class="result"></div>
-    </div>
+            <!-- Uni-Axial Column Design -->
+            <section id="uni-axial" class="design-section">
+                <h2>Uni-Axial Column Design</h2>
+                <div class="calculator-placeholder">
+                    <!-- Add your uni-axial column calculator here -->
+                    <p>Uni-axial column design calculator (Coming Soon)</p>
+                </div>
+            </section>
 
-    <!-- Floor Beam Design -->
-    <div class="form-container">
-        <h2>Floor Beam Design</h2>
-        <label for="load">Load per unit length (kN/m):</label>
-        <input type="number" id="load" placeholder="Enter load in kN/m">
-        <label for="length">Length of Beam (m):</label>
-        <input type="number" id="length" placeholder="Enter length in meters">
-        <button onclick="calculateFloorBeam()">Calculate Bending Moment</button>
-        <div id="floor-beam-result" class="result"></div>
-    </div>
+            <!-- Bi-Axial Column Design -->
+            <section id="bi-axial" class="design-section">
+                <h2>Bi-Axial Column Design</h2>
+                <div class="calculator-placeholder">
+                    <!-- Add your bi-axial column calculator here -->
+                    <p>Bi-axial column design calculator (Coming Soon)</p>
+                </div>
+            </section>
 
-    <!-- Slab Design -->
-    <div class="form-container">
-        <h2>Slab Design</h2>
-        <label for="slab-load">Load (kN/m²):</label>
-        <input type="number" id="slab-load" placeholder="Enter load in kN/m²">
-        <label for="slab-length">Slab Length (m):</label>
-        <input type="number" id="slab-length" placeholder="Enter slab length in meters">
-        <button onclick="calculateSlab()">Calculate Bending Moment</button>
-        <div id="slab-result" class="result"></div>
-    </div>
+            <!-- Grade Beam Design -->
+            <section id="grade-beam" class="design-section">
+                <h2>Grade Beam Design</h2>
+                <div class="calculator-placeholder">
+                    <!-- Add your grade beam calculator here -->
+                    <p>Grade beam design calculator (Coming Soon)</p>
+                </div>
+            </section>
 
-    <!-- Footing Design -->
-    <div class="form-container">
-        <h2>Footing Design</h2>
-        <label for="load-footing">Load from Structure (kN):</label>
-        <input type="number" id="load-footing" placeholder="Enter load in kN">
-        <label for="soil-bearing">Soil Bearing Capacity (kN/m²):</label>
-        <input type="number" id="soil-bearing" placeholder="Enter soil bearing capacity">
-        <button onclick="calculateFooting()">Calculate Footing Area</button>
-        <div id="footing-result" class="result"></div>
-    </div>
+            <!-- Floor Beam Design -->
+            <section id="floor-beam" class="design-section">
+                <h2>Floor Beam Design</h2>
+                <div class="calculator-placeholder">
+                    <!-- Add your floor beam calculator here -->
+                    <p>Floor beam design calculator (Coming Soon)</p>
+                </div>
+            </section>
 
-    <!-- Pile Design -->
-    <div class="form-container">
-        <h2>Pile Design</h2>
-        <label for="pile-capacity">Pile Capacity (kN):</label>
-        <input type="number" id="pile-capacity" placeholder="Enter pile capacity in kN">
-        <button onclick="calculatePile()">Calculate Pile Load</button>
-        <div id="pile-result" class="result"></div>
-    </div>
+            <!-- Slab Design -->
+            <section id="slab" class="design-section">
+                <h2>Slab Design</h2>
+                <div class="calculator-placeholder">
+                    <!-- Add your slab calculator here -->
+                    <p>Slab design calculator (Coming Soon)</p>
+                </div>
+            </section>
 
-    <!-- Pile Cap Design -->
-    <div class="form-container">
-        <h2>Pile Cap Design</h2>
-        <label for="pile-load">Pile Load (kN):</label>
-        <input type="number" id="pile-load" placeholder="Enter pile load in kN">
-        <label for="pile-dimension">Pile Cap Dimension (m):</label>
-        <input type="number" id="pile-dimension" placeholder="Enter pile cap dimension in meters">
-        <button onclick="calculatePileCap()">Calculate Pile Cap Load</button>
-        <div id="pile-cap-result" class="result"></div>
+            <!-- Pile Design -->
+            <section id="pile" class="design-section">
+                <h2>Pile Design</h2>
+                <div class="calculator-placeholder">
+                    <!-- Add your pile calculator here -->
+                    <p>Pile design calculator (Coming Soon)</p>
+                </div>
+            </section>
+
+            <!-- Pile Cap Design -->
+            <section id="pile-cap" class="design-section">
+                <h2>Pile Cap Design</h2>
+                <div class="calculator-placeholder">
+                    <!-- Add your pile cap calculator here -->
+                    <p>Pile cap design calculator (Coming Soon)</p>
+                </div>
+            </section>
+
+            <!-- Footing Design -->
+            <section id="footing" class="design-section">
+                <h2>Footing Design</h2>
+                <div class="calculator-placeholder">
+                    <!-- Add your footing calculator here -->
+                    <p>Footing design calculator (Coming Soon)</p>
+                </div>
+            </section>
+        </main>
     </div>
 
     <script>
-        function calculateColumn() {
-            var area = document.getElementById('column-area').value;
-            var compressiveStrength = document.getElementById('compressive-strength').value;
-            var loadCapacity = area * compressiveStrength;
-            document.getElementById('column-result').innerHTML = 'Load Capacity: ' + loadCapacity + ' kN';
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.design-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Remove active class from all links
+            document.querySelectorAll('.design-list a').forEach(link => {
+                link.classList.remove('active-link');
+            });
+
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to clicked link
+            event.target.classList.add('active-link');
         }
 
-        function calculateGradeBeam() {
-            var bendingStress = document.getElementById('bending-stress').value;
-            var momentOfInertia = document.getElementById('moment-of-inertia').value;
-            var bendingMoment = bendingStress * momentOfInertia;
-            document.getElementById('grade-beam-result').innerHTML = 'Bending Moment: ' + bendingMoment + ' kNm';
-        }
-
-        function calculateFloorBeam() {
-            var load = document.getElementById('load').value;
-            var length = document.getElementById('length').value;
-            var bendingMoment = (load * Math.pow(length, 2)) / 8;
-            document.getElementById('floor-beam-result').innerHTML = 'Bending Moment: ' + bendingMoment + ' kNm';
-        }
-
-        function calculateSlab() {
-            var load = document.getElementById('slab-load').value;
-            var length = document.getElementById('slab-length').value;
-            var bendingMoment = (load * Math.pow(length, 2)) / 12;
-            document.getElementById('slab-result').innerHTML = 'Bending Moment: ' + bendingMoment + ' kNm';
-        }
-
-        function calculateFooting() {
-            var load = document.getElementById('load-footing').value;
-            var soilBearing = document.getElementById('soil-bearing').value;
-            var area = load / soilBearing;
-            document.getElementById('footing-result').innerHTML = 'Footing Area: ' + area + ' m²';
-        }
-
-        function calculatePile() {
-            var pileCapacity = document.getElementById('pile-capacity').value;
-            document.getElementById('pile-result').innerHTML = 'Pile Load: ' + pileCapacity + ' kN';
-        }
-
-        function calculatePileCap() {
-            var pileLoad = document.getElementById('pile-load').value;
-            var dimension = document.getElementById('pile-dimension').value;
-            var load = pileLoad / dimension;
-            document.getElementById('pile-cap-result').innerHTML = 'Pile Cap Load: ' + load + ' kN/m²';
-        }
+        // Set default active section
+        window.onload = function() {
+            document.querySelector('.design-list a').classList.add('active-link');
+        };
     </script>
-
 </body>
 </html>
