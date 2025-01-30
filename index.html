@@ -3,159 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Column Load Capacity Calculator</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        .input-group input, .input-group select {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-        }
-        .dimension-input {
-            display: none;
-        }
-        .output {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-        }
-    </style>
+    <title>Civil Engineering Calculator</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Column Load Capacity Calculator (ACI 318-19)</h1>
-        
-        <!-- Column Type Selection -->
-        <div class="input-group">
-            <label for="columnType">Column Type:</label>
-            <select id="columnType" onchange="toggleDimensions()">
-                <option value="tied">Tied Column (Rectangular)</option>
-                <option value="spiral">Spiral Column (Circular)</option>
-            </select>
-        </div>
+    <header>
+        <h1>Civil Engineering Design Calculators</h1>
+        <p>Choose a design type and enter the required parameters.</p>
+    </header>
+    
+    <main>
+        <section id="column-design">
+            <h2>Column Design</h2>
+            <form id="columnForm">
+                <label for="load">Axial Load (kN):</label>
+                <input type="number" id="load" required>
+                
+                <label for="strength">Concrete Strength (MPa):</label>
+                <input type="number" id="strength" required>
+                
+                <button type="button" onclick="calculateColumn()">Calculate</button>
+            </form>
+            <div id="column-result"></div>
+        </section>
+    </main>
 
-        <!-- Tied Column Dimensions -->
-        <div class="dimension-input" id="tiedDimensions">
-            <div class="input-group">
-                <label for="columnWidth">Width (mm):</label>
-                <input type="number" id="columnWidth" placeholder="Enter width">
-            </div>
-            <div class="input-group">
-                <label for="columnDepth">Depth (mm):</label>
-                <input type="number" id="columnDepth" placeholder="Enter depth">
-            </div>
-        </div>
+    <footer>
+        <p>&copy; 2025 Civil Engineering Calculator</p>
+    </footer>
 
-        <!-- Spiral Column Dimension -->
-        <div class="dimension-input" id="spiralDimension">
-            <div class="input-group">
-                <label for="columnDia">Diameter (mm):</label>
-                <input type="number" id="columnDia" placeholder="Enter diameter">
-            </div>
-        </div>
-
-        <!-- Common Inputs -->
-        <div class="input-group">
-            <label for="columnHeight">Column Height (mm):</label>
-            <input type="number" id="columnHeight" placeholder="Enter column height">
-        </div>
-        <div class="input-group">
-            <label for="fc">Concrete Strength (MPa):</label>
-            <input type="number" id="fc" placeholder="Enter f'c">
-        </div>
-        <div class="input-group">
-            <label for="fy">Steel Yield Strength (MPa):</label>
-            <input type="number" id="fy" placeholder="Enter fy">
-        </div>
-        <div class="input-group">
-            <label for="steelBars">Number of 16mm Bars:</label>
-            <input type="number" id="steelBars" placeholder="Enter number of bars">
-        </div>
-
-        <button onclick="calculateCapacity()">Calculate</button>
-        
-        <div class="output" id="output">
-            <h2>Results</h2>
-            <p>Allowable Load Capacity: <span id="allowableLoad">0.00</span> tons</p>
-            <p>Slenderness Ratio: <span id="slenderness">0.00</span></p>
-        </div>
-    </div>
-
-    <script>
-        // Toggle dimension inputs based on column type
-        function toggleDimensions() {
-            const colType = document.getElementById('columnType').value;
-            document.getElementById('tiedDimensions').style.display = 
-                colType === 'tied' ? 'block' : 'none';
-            document.getElementById('spiralDimension').style.display = 
-                colType === 'spiral' ? 'block' : 'none';
-        }
-
-        // Initial setup
-        window.onload = function() {
-            toggleDimensions();
-        };
-
-        function calculateCapacity() {
-            // Get column type
-            const colType = document.getElementById('columnType').value;
-            
-            // Get common values
-            const height = parseFloat(document.getElementById('columnHeight').value);
-            const fc = parseFloat(document.getElementById('fc').value);
-            const fy = parseFloat(document.getElementById('fy').value);
-            const steelBars = parseFloat(document.getElementById('steelBars').value);
-            const phi = colType === 'tied' ? 0.65 : 0.75;
-
-            // Calculate cross-sectional area and radius of gyration
-            let Ag, r;
-            if(colType === 'tied') {
-                const width = parseFloat(document.getElementById('columnWidth').value);
-                const depth = parseFloat(document.getElementById('columnDepth').value);
-                Ag = width * depth;
-                r = 0.3 * Math.min(width, depth); // Radius of gyration for rectangular section
-            } else {
-                const dia = parseFloat(document.getElementById('columnDia').value);
-                Ag = Math.PI * Math.pow(dia/2, 2);
-                r = 0.25 * dia; // Radius of gyration for circular section
-            }
-
-            // Calculate slenderness ratio (k = 1 assumed)
-            const slenderness = height / r;
-
-            // Calculate steel area
-            const barArea = Math.PI * Math.pow(16/2, 2);
-            const As = steelBars * barArea;
-
-            // Calculate nominal capacity
-            let Pn = phi * (0.85 * fc * (Ag - As) + fy * As) / 1000; // in kN
-            let P_ton = Pn / 9.80665; // Convert to tons
-
-            // Apply slenderness reduction if necessary
-            if ((colType === 'tied' && slenderness > 22) || 
-                (colType === 'spiral' && slenderness > 34)) {
-                P_ton *= 0.7; // 30% reduction for slender columns
-            }
-
-            // Display results
-            document.getElementById('allowableLoad').textContent = P_ton.toFixed(2);
-            document.getElementById('slenderness').textContent = slenderness.toFixed(2);
-        }
-    </script>
+    <script src="scripts.js"></script>
 </body>
 </html>
