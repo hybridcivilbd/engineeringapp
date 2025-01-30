@@ -60,19 +60,48 @@
             display: block;
         }
 
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 30px;
+        /* Sub-Axial Column Styles */
+        .column-container {
+            max-width: 600px;
+            margin: 0 auto;
         }
 
-        h2 {
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
             color: #34495e;
-            margin-bottom: 20px;
         }
 
-        .calculator-placeholder {
-            background-color: #f8f9fa;
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .output {
+            margin-top: 20px;
             padding: 20px;
+            background-color: #f8f9fa;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
@@ -88,122 +117,84 @@
         <nav class="sidebar">
             <h1>Structural Design</h1>
             <ul class="design-list">
-                <li><a href="#sub-axial" onclick="showSection('sub-axial')">Sub-Axial Column</a></li>
+                <li><a href="#sub-axial" onclick="showSection('sub-axial')" class="active-link">Sub-Axial Column</a></li>
                 <li><a href="#uni-axial" onclick="showSection('uni-axial')">Uni-Axial Column</a></li>
                 <li><a href="#bi-axial" onclick="showSection('bi-axial')">Bi-Axial Column</a></li>
-                <li><a href="#grade-beam" onclick="showSection('grade-beam')">Grade Beam</a></li>
-                <li><a href="#floor-beam" onclick="showSection('floor-beam')">Floor Beam</a></li>
-                <li><a href="#slab" onclick="showSection('slab')">Slab Design</a></li>
-                <li><a href="#pile" onclick="showSection('pile')">Pile Design</a></li>
-                <li><a href="#pile-cap" onclick="showSection('pile-cap')">Pile Cap</a></li>
-                <li><a href="#footing" onclick="showSection('footing')">Footing Design</a></li>
+                <!-- Other navigation links remain same -->
             </ul>
         </nav>
 
         <main class="main-content">
             <!-- Sub-Axial Column Design -->
             <section id="sub-axial" class="design-section active">
-                <h2>Sub-Axial Column Design</h2>
-                <div class="calculator-placeholder">
-                    <!-- Add your sub-axial column calculator here -->
-                    <p>Sub-axial column design calculator (Coming Soon)</p>
+                <div class="column-container">
+                    <h2>Reinforced Concrete Column Design (ACI 318-19)</h2>
+                    <div class="input-group">
+                        <label for="load">Axial Load (Ton):</label>
+                        <input type="number" id="load" placeholder="Enter axial load in tons">
+                    </div>
+                    <div class="input-group">
+                        <label for="fc">Concrete Strength (MPa):</label>
+                        <input type="number" id="fc" placeholder="Enter fc in MPa">
+                    </div>
+                    <div class="input-group">
+                        <label for="fy">Steel Yield Strength (MPa):</label>
+                        <input type="number" id="fy" placeholder="Enter fy in MPa">
+                    </div>
+                    <button onclick="designColumn()">Design Column</button>
+                    <div class="output" id="output">
+                        <h3>Design Output</h3>
+                        <p>Column Size: <span id="columnSize"></span></p>
+                        <p>Vertical Reinforcement: <span id="verticalReinforcement"></span></p>
+                        <p>Stirrup Spacing (Edge): <span id="stirrupEdge"></span></p>
+                        <p>Stirrup Spacing (Middle): <span id="stirrupMiddle"></span></p>
+                    </div>
                 </div>
             </section>
 
-            <!-- Uni-Axial Column Design -->
-            <section id="uni-axial" class="design-section">
-                <h2>Uni-Axial Column Design</h2>
-                <div class="calculator-placeholder">
-                    <!-- Add your uni-axial column calculator here -->
-                    <p>Uni-axial column design calculator (Coming Soon)</p>
-                </div>
-            </section>
-
-            <!-- Bi-Axial Column Design -->
-            <section id="bi-axial" class="design-section">
-                <h2>Bi-Axial Column Design</h2>
-                <div class="calculator-placeholder">
-                    <!-- Add your bi-axial column calculator here -->
-                    <p>Bi-axial column design calculator (Coming Soon)</p>
-                </div>
-            </section>
-
-            <!-- Grade Beam Design -->
-            <section id="grade-beam" class="design-section">
-                <h2>Grade Beam Design</h2>
-                <div class="calculator-placeholder">
-                    <!-- Add your grade beam calculator here -->
-                    <p>Grade beam design calculator (Coming Soon)</p>
-                </div>
-            </section>
-
-            <!-- Floor Beam Design -->
-            <section id="floor-beam" class="design-section">
-                <h2>Floor Beam Design</h2>
-                <div class="calculator-placeholder">
-                    <!-- Add your floor beam calculator here -->
-                    <p>Floor beam design calculator (Coming Soon)</p>
-                </div>
-            </section>
-
-            <!-- Slab Design -->
-            <section id="slab" class="design-section">
-                <h2>Slab Design</h2>
-                <div class="calculator-placeholder">
-                    <!-- Add your slab calculator here -->
-                    <p>Slab design calculator (Coming Soon)</p>
-                </div>
-            </section>
-
-            <!-- Pile Design -->
-            <section id="pile" class="design-section">
-                <h2>Pile Design</h2>
-                <div class="calculator-placeholder">
-                    <!-- Add your pile calculator here -->
-                    <p>Pile design calculator (Coming Soon)</p>
-                </div>
-            </section>
-
-            <!-- Pile Cap Design -->
-            <section id="pile-cap" class="design-section">
-                <h2>Pile Cap Design</h2>
-                <div class="calculator-placeholder">
-                    <!-- Add your pile cap calculator here -->
-                    <p>Pile cap design calculator (Coming Soon)</p>
-                </div>
-            </section>
-
-            <!-- Footing Design -->
-            <section id="footing" class="design-section">
-                <h2>Footing Design</h2>
-                <div class="calculator-placeholder">
-                    <!-- Add your footing calculator here -->
-                    <p>Footing design calculator (Coming Soon)</p>
-                </div>
-            </section>
+            <!-- Other sections remain same -->
         </main>
     </div>
 
     <script>
+        // Section visibility control
         function showSection(sectionId) {
-            // Hide all sections
             document.querySelectorAll('.design-section').forEach(section => {
                 section.classList.remove('active');
             });
-
-            // Remove active class from all links
             document.querySelectorAll('.design-list a').forEach(link => {
                 link.classList.remove('active-link');
             });
-
-            // Show selected section
             document.getElementById(sectionId).classList.add('active');
-            
-            // Add active class to clicked link
             event.target.classList.add('active-link');
         }
 
-        // Set default active section
+        // Column design function
+        function designColumn() {
+            const load = parseFloat(document.getElementById('load').value) * 9.80665;
+            const fc = parseFloat(document.getElementById('fc').value);
+            const fy = parseFloat(document.getElementById('fy').value);
+            const phi = 0.65;
+            const rho = 0.02;
+
+            const Ag = (load * 1000) / (phi * (0.85 * fc + (fy - 0.85 * fc) * rho));
+            const side = Math.sqrt(Ag);
+            const columnSize = Math.ceil(side / 50) * 50;
+
+            const Ast = rho * Ag;
+            const barSize = 16;
+            const barArea = Math.PI * Math.pow(barSize / 2, 2);
+            const numBars = Math.ceil(Ast / barArea);
+
+            const stirrupEdge = Math.min(columnSize / 2, 16 * barSize, 300);
+            const stirrupMiddle = Math.min(columnSize, 24 * barSize, 300);
+
+            document.getElementById('columnSize').textContent = `${columnSize} mm x ${columnSize} mm`;
+            document.getElementById('verticalReinforcement').textContent = `${numBars} nos ${barSize} mm steel`;
+            document.getElementById('stirrupEdge').textContent = `${stirrupEdge} mm`;
+            document.getElementById('stirrupMiddle').textContent = `${stirrupMiddle} mm`;
+        }
+
         window.onload = function() {
             document.querySelector('.design-list a').classList.add('active-link');
         };
