@@ -3,35 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Civil Engineering Calculator</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Civil Engineering Calculation Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .form-container {
+            margin: 20px 0;
+        }
+        label, input {
+            display: block;
+            margin: 10px 0;
+        }
+        input[type="number"] {
+            width: 200px;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Civil Engineering Design Calculators</h1>
-        <p>Choose a design type and enter the required parameters.</p>
-    </header>
-    
-    <main>
-        <section id="column-design">
-            <h2>Column Design</h2>
-            <form id="columnForm">
-                <label for="load">Axial Load (kN):</label>
-                <input type="number" id="load" required>
-                
-                <label for="strength">Concrete Strength (MPa):</label>
-                <input type="number" id="strength" required>
-                
-                <button type="button" onclick="calculateColumn()">Calculate</button>
-            </form>
-            <div id="column-result"></div>
-        </section>
-    </main>
+    <h1>Civil Engineering Design Calculations</h1>
 
-    <footer>
-        <p>&copy; 2025 Civil Engineering Calculator</p>
-    </footer>
+    <!-- Column Design -->
+    <div class="form-container">
+        <h2>Column Design</h2>
+        <label for="column-area">Column Area (m²):</label>
+        <input type="number" id="column-area" placeholder="Enter area in m²">
+        <label for="compressive-strength">Compressive Strength (MPa):</label>
+        <input type="number" id="compressive-strength" placeholder="Enter compressive strength">
+        <button onclick="calculateColumn()">Calculate Load Capacity</button>
+        <div id="column-result" class="result"></div>
+    </div>
 
-    <script src="scripts.js"></script>
+    <!-- Grade Beam Design -->
+    <div class="form-container">
+        <h2>Grade Beam Design</h2>
+        <label for="bending-stress">Bending Stress (MPa):</label>
+        <input type="number" id="bending-stress" placeholder="Enter bending stress">
+        <label for="moment-of-inertia">Moment of Inertia (m⁴):</label>
+        <input type="number" id="moment-of-inertia" placeholder="Enter moment of inertia">
+        <button onclick="calculateGradeBeam()">Calculate Bending Moment</button>
+        <div id="grade-beam-result" class="result"></div>
+    </div>
+
+    <!-- Floor Beam Design -->
+    <div class="form-container">
+        <h2>Floor Beam Design</h2>
+        <label for="load">Load per unit length (kN/m):</label>
+        <input type="number" id="load" placeholder="Enter load in kN/m">
+        <label for="length">Length of Beam (m):</label>
+        <input type="number" id="length" placeholder="Enter length in meters">
+        <button onclick="calculateFloorBeam()">Calculate Bending Moment</button>
+        <div id="floor-beam-result" class="result"></div>
+    </div>
+
+    <!-- Slab Design -->
+    <div class="form-container">
+        <h2>Slab Design</h2>
+        <label for="slab-load">Load (kN/m²):</label>
+        <input type="number" id="slab-load" placeholder="Enter load in kN/m²">
+        <label for="slab-length">Slab Length (m):</label>
+        <input type="number" id="slab-length" placeholder="Enter slab length in meters">
+        <button onclick="calculateSlab()">Calculate Bending Moment</button>
+        <div id="slab-result" class="result"></div>
+    </div>
+
+    <!-- Footing Design -->
+    <div class="form-container">
+        <h2>Footing Design</h2>
+        <label for="load-footing">Load from Structure (kN):</label>
+        <input type="number" id="load-footing" placeholder="Enter load in kN">
+        <label for="soil-bearing">Soil Bearing Capacity (kN/m²):</label>
+        <input type="number" id="soil-bearing" placeholder="Enter soil bearing capacity">
+        <button onclick="calculateFooting()">Calculate Footing Area</button>
+        <div id="footing-result" class="result"></div>
+    </div>
+
+    <!-- Pile Design -->
+    <div class="form-container">
+        <h2>Pile Design</h2>
+        <label for="pile-capacity">Pile Capacity (kN):</label>
+        <input type="number" id="pile-capacity" placeholder="Enter pile capacity in kN">
+        <button onclick="calculatePile()">Calculate Pile Load</button>
+        <div id="pile-result" class="result"></div>
+    </div>
+
+    <!-- Pile Cap Design -->
+    <div class="form-container">
+        <h2>Pile Cap Design</h2>
+        <label for="pile-load">Pile Load (kN):</label>
+        <input type="number" id="pile-load" placeholder="Enter pile load in kN">
+        <label for="pile-dimension">Pile Cap Dimension (m):</label>
+        <input type="number" id="pile-dimension" placeholder="Enter pile cap dimension in meters">
+        <button onclick="calculatePileCap()">Calculate Pile Cap Load</button>
+        <div id="pile-cap-result" class="result"></div>
+    </div>
+
+    <script>
+        function calculateColumn() {
+            var area = document.getElementById('column-area').value;
+            var compressiveStrength = document.getElementById('compressive-strength').value;
+            var loadCapacity = area * compressiveStrength;
+            document.getElementById('column-result').innerHTML = 'Load Capacity: ' + loadCapacity + ' kN';
+        }
+
+        function calculateGradeBeam() {
+            var bendingStress = document.getElementById('bending-stress').value;
+            var momentOfInertia = document.getElementById('moment-of-inertia').value;
+            var bendingMoment = bendingStress * momentOfInertia;
+            document.getElementById('grade-beam-result').innerHTML = 'Bending Moment: ' + bendingMoment + ' kNm';
+        }
+
+        function calculateFloorBeam() {
+            var load = document.getElementById('load').value;
+            var length = document.getElementById('length').value;
+            var bendingMoment = (load * Math.pow(length, 2)) / 8;
+            document.getElementById('floor-beam-result').innerHTML = 'Bending Moment: ' + bendingMoment + ' kNm';
+        }
+
+        function calculateSlab() {
+            var load = document.getElementById('slab-load').value;
+            var length = document.getElementById('slab-length').value;
+            var bendingMoment = (load * Math.pow(length, 2)) / 12;
+            document.getElementById('slab-result').innerHTML = 'Bending Moment: ' + bendingMoment + ' kNm';
+        }
+
+        function calculateFooting() {
+            var load = document.getElementById('load-footing').value;
+            var soilBearing = document.getElementById('soil-bearing').value;
+            var area = load / soilBearing;
+            document.getElementById('footing-result').innerHTML = 'Footing Area: ' + area + ' m²';
+        }
+
+        function calculatePile() {
+            var pileCapacity = document.getElementById('pile-capacity').value;
+            document.getElementById('pile-result').innerHTML = 'Pile Load: ' + pileCapacity + ' kN';
+        }
+
+        function calculatePileCap() {
+            var pileLoad = document.getElementById('pile-load').value;
+            var dimension = document.getElementById('pile-dimension').value;
+            var load = pileLoad / dimension;
+            document.getElementById('pile-cap-result').innerHTML = 'Pile Cap Load: ' + load + ' kN/m²';
+        }
+    </script>
+
 </body>
 </html>
