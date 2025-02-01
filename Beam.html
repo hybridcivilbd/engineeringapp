@@ -3,14 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Improved ACI Beam Calculator</title>
+    <title>ACI Beam Design Calculator</title>
     <style>
-        /* (Keep previous CSS styles) */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        .calculator {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input, select {
+            padding: 8px;
+            width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #2196F3;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+
+        button:hover {
+            background-color: #1976D2;
+        }
+
+        .results {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #e3f2fd;
+            border-radius: 5px;
+        }
+
+        .warning {
+            color: #d32f2f;
+            font-weight: bold;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
     <div class="calculator">
-        <h2>Improved ACI Beam Calculator</h2>
+        <h2>ACI Beam Design Calculator</h2>
         
         <div class="input-group">
             <label>Concrete Strength f'c (psi):</label>
@@ -37,8 +92,15 @@
             <label>Concrete Cover (in):</label>
             <input type="number" id="cover" value="1.5">
             
-            <label>Main Bar Size (#):</label>
-            <input type="number" id="barSize" value="6" min="3" max="11">
+            <label>Main Bar Size (mm):</label>
+            <select id="barSize">
+                <option value="10">10mm</option>
+                <option value="12">12mm</option>
+                <option value="16" selected>16mm</option>
+                <option value="20">20mm</option>
+                <option value="25">25mm</option>
+                <option value="32">32mm</option>
+            </select>
         </div>
 
         <button onclick="calculate()">Calculate</button>
@@ -49,19 +111,16 @@
 
     <script>
         const barProperties = {
-            3: { area: 0.11, diameter: 0.375 },
-            4: { area: 0.20, diameter: 0.500 },
-            5: { area: 0.31, diameter: 0.625 },
-            6: { area: 0.44, diameter: 0.750 },
-            7: { area: 0.60, diameter: 0.875 },
-            8: { area: 0.79, diameter: 1.000 },
-            9: { area: 1.00, diameter: 1.128 },
-            10: { area: 1.27, diameter: 1.270 },
-            11: { area: 1.56, diameter: 1.410 }
+            10: { diameter: 10, area: 78.54 },
+            12: { diameter: 12, area: 113.10 },
+            16: { diameter: 16, area: 201.06 },
+            20: { diameter: 20, area: 314.16 },
+            25: { diameter: 25, area: 490.87 },
+            32: { diameter: 32, area: 804.25 }
         };
 
         function calculate() {
-            // Input values
+            // Get inputs
             const fc = parseFloat(document.getElementById('fc').value);
             const fy = parseFloat(document.getElementById('fy').value);
             const span = parseFloat(document.getElementById('span').value);
@@ -72,64 +131,85 @@
             const cover = parseFloat(document.getElementById('cover').value);
             const barSize = parseInt(document.getElementById('barSize').value);
 
-            // Validate inputs
+            // Validate bar size
             if (!barProperties[barSize]) {
-                alert("Invalid bar size! Use #3-#11");
+                alert("Invalid bar size selection!");
                 return;
             }
 
             // Unit conversions
-            const L = span * 12; // Span in inches
             const bar = barProperties[barSize];
-            
-            // Effective depth calculation
-            const d = h - cover - 0.375 - (bar.diameter/2);
+            const barDiaIn = bar.diameter / 25.4; // mm to inches
+            const barAreaIn2 = bar.area / 645.16; // mm² to in²
 
-            // Load calculations (FIXED unit conversion)
+            // Effective depth
+            const d = h - cover - 0.375 - (barDiaIn/2);
+
+            // Load calculations
             const wu = (1.2*DL + 1.6*LL) * (b/12); // plf
-            const Mu = (wu * Math.pow(span, 2) / 8) * 12; // lb-in (corrected multiplier)
-            
-            // Flexural design (iterative method)
+            const Mu = (wu * Math.pow(span, 2)/8) * 12; // lb-in
+            const Vu = (wu * span)/2; // lbs
+
+            // Flexural design (iterative)
             let As, a, MuCapacity;
             let iterations = 0;
-            let phi = 0.9;
+            const phi = 0.9;
             
-            // Initial guess
-            As = Mu / (phi * fy * 0.9 * d);
+            As = Mu / (phi * fy * 0.9 * d); // Initial estimate
             
             do {
                 a = (As * fy) / (0.85 * fc * b);
                 MuCapacity = phi * As * fy * (d - a/2);
-                As = As * (Mu / MuCapacity);
+                As *= Mu / MuCapacity;
                 iterations++;
             } while (iterations < 10 && Math.abs(Mu - MuCapacity) > 1000);
 
             // Reinforcement checks
-            const As_min = Math.max((3 * Math.sqrt(fc) / fy) * b * d, (200 / fy) * b * d);
-            const rho_bal = (0.85 * 0.85 * fc / fy) * (87000 / (87000 + fy));
-            const As_max = 0.75 * rho_bal * b * d;
+            const As_min = Math.max(
+                (3 * Math.sqrt(fc)/fy) * b * d,
+                (200/fy) * b * d
+            );
             
+            const beta1 = fc >= 4000 ? Math.max(0.65, 0.85 - 0.05*(fc-4000)/1000) : 0.85;
+            const rho_bal = (0.85 * beta1 * fc/fy) * (87000/(87000 + fy));
+            const As_max = 0.75 * rho_bal * b * d;
+
             // Bar calculation
-            const barsRequired = Math.ceil(As / bar.area);
-            const actualAs = barsRequired * bar.area;
+            const barsRequired = Math.ceil(As / barAreaIn2);
+            const actualAs = barsRequired * barAreaIn2;
 
-            // Format results
-            let output = `<h3>Design Results:</h3>
-                <p>Required Steel Area: ${As.toFixed(2)} in²</p>
-                <p>Minimum Steel: ${As_min.toFixed(2)} in²</p>
-                <p>Maximum Steel: ${As_max.toFixed(2)} in²</p>
-                <p>Selected Reinforcement: ${barsRequired} #${barSize} bars (${actualAs.toFixed(2)} in²)</p>`;
+            // Results formatting
+            let output = `<h3>Design Results</h3>
+                <p>Required Steel Area: ${As.toFixed(2)} in² (${(As*645.16).toFixed(0)} mm²)</p>
+                <p>Selected Reinforcement: ${barsRequired} nos Ø${barSize}mm bars</p>
+                <p>Actual Provided Area: ${actualAs.toFixed(2)} in² (${(actualAs*645.16).toFixed(0)} mm²)</p>
+                <p>Minimum Required: ${As_min.toFixed(2)} in²</p>
+                <p>Maximum Allowed: ${As_max.toFixed(2)} in²</p>`;
 
-            // Add warnings
-            if (actualAs < As_min) output += `<p class="warning">Warning: Below minimum reinforcement!</p>`;
-            if (actualAs > As_max) output += `<p class="warning">Warning: Exceeds maximum reinforcement!</p>`;
-            if (h < L/16) output += `<p class="warning">Warning: Depth less than L/16!</p>`;
+            // Warnings
+            const warnings = [];
+            if (h < (span*12)/16) warnings.push("Depth less than L/16");
+            if (actualAs < As_min) warnings.push("Below minimum reinforcement");
+            if (actualAs > As_max) warnings.push("Exceeds maximum reinforcement");
+            
+            if (warnings.length > 0) {
+                output += `<div class="warning">Warnings:<br>${warnings.join("<br>")}</div>`;
+            }
 
             document.getElementById('results').innerHTML = output;
         }
 
         function resetValues() {
-            // (Keep previous reset function)
+            document.getElementById('fc').value = 4000;
+            document.getElementById('fy').value = 60000;
+            document.getElementById('span').value = 20;
+            document.getElementById('width').value = 14;
+            document.getElementById('depth').value = 24;
+            document.getElementById('DL').value = 80;
+            document.getElementById('LL').value = 50;
+            document.getElementById('cover').value = 1.5;
+            document.getElementById('barSize').value = "16";
+            document.getElementById('results').innerHTML = "";
         }
     </script>
 </body>
