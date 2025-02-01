@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biaxial Column Design (ACI 318-19)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Biaxial Column Design (ACI 318-19)</h1>
+        <div class="input-group">
+            <label for="load">Axial Load (Ton):</label>
+            <input type="number" id="load" placeholder="Enter axial load in tons">
+        </div>
+        <div class="input-group">
+            <label for="momentX">Moment about X-axis (kN·m):</label>
+            <input type="number" id="momentX" placeholder="Enter moment about X-axis">
+        </div>
+        <div class="input-group">
+            <label for="momentY">Moment about Y-axis (kN·m):</label>
+            <input type="number" id="momentY" placeholder="Enter moment about Y-axis">
+        </div>
+        <div class="input-group">
+            <label for="columnHeight">Column Height (m):</label>
+            <input type="number" id="columnHeight" placeholder="Enter column height in meters">
+        </div>
+        <div class="input-group">
+            <label for="fc">Concrete Strength (MPa):</label>
+            <input type="number" id="fc" placeholder="Enter fc in MPa">
+        </div>
+        <div class="input-group">
+            <label for="fy">Steel Yield Strength (MPa):</label>
+            <input type="number" id="fy" placeholder="Enter fy in MPa">
+        </div>
+        <button onclick="designColumn()">Design Column</button>
+        <div class="output" id="output">
+            <h2>Design Output</h2>
+            <p>Column Size: <span id="columnSize"></span></p>
+            <p>Vertical Reinforcement: <span id="verticalReinforcement"></span></p>
+            <p>Stirrup Spacing (Edge): <span id="stirrupEdge"></span></p>
+            <p>Stirrup Spacing (Middle): <span id="stirrupMiddle"></span></p>
+        </div>
+    </div>
+
+    <script>
+        function designColumn() {
+            // Input values
+            const load = parseFloat(document.getElementById('load').value) * 9.80665; // Convert tons to kN
+            const momentX = parseFloat(document.getElementById('momentX').value); // Moment about X-axis in kN·m
+            const momentY = parseFloat(document.getElementById('momentY').value); // Moment about Y-axis in kN·m
+            const columnHeight = parseFloat(document.getElementById('columnHeight').value); // Column height in meters
+            const fc = parseFloat(document.getElementById('fc').value); // Concrete strength in MPa
+            const fy = parseFloat(document.getElementById('fy').value); // Steel yield strength in MPa
+
+            // Constants
+            const phi = 0.65; // Strength reduction factor for compression members
+            const gamma = 1.2; // Load factor
+            const rho = 0.02; // Reinforcement ratio (2%, typical for columns)
+
+            // Calculate required column dimensions
+            const Ag = (gamma * load * 1000) / (phi * (0.85 * fc)); // Required gross area in mm²
+            const sideX = Math.sqrt(Ag * (momentX / (momentX + momentY))); // Width (b) in mm
+            const sideY = Math.sqrt(Ag * (momentY / (momentX + momentY))); // Depth (h) in mm
+            const columnSizeX = Math.ceil(sideX / 50) * 50; // Round up to nearest 50 mm
+            const columnSizeY = Math.ceil(sideY / 50) * 50; // Round up to nearest 50 mm
+
+            // Calculate required reinforcement
+            const Ast = rho * Ag; // Total reinforcement area in mm²
+            const barSize = 16; // 16 mm bars
+            const barArea = Math.PI * Math.pow(barSize / 2, 2); // Area of one bar in mm²
+            const numBars = Math.ceil(Ast / barArea); // Number of bars
+
+            // Stirrup spacing
+            const stirrupEdge = Math.min(columnSizeX / 2, 16 * barSize, 300); // ACI 318-19 requirements
+            const stirrupMiddle = Math.min(columnSizeX, 24 * barSize, 300);
+
+            // Display results
+            document.getElementById('columnSize').textContent = `${columnSizeX} mm x ${columnSizeY} mm`;
+            document.getElementById('verticalReinforcement').textContent = `${numBars} nos ${barSize} mm steel`;
+            document.getElementById('stirrupEdge').textContent = `${stirrupEdge} mm`;
+            document.getElementById('stirrupMiddle').textContent = `${stirrupMiddle} mm`;
+        }
+    </script>
+</body>
+</html>
