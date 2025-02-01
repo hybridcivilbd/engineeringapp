@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACI Floor Beam Design Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        .calculator {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input {
+            padding: 5px;
+            width: 150px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f4e8;
+            border-radius: 4px;
+        }
+
+        .warning {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h2>ACI Floor Beam Design Calculator</h2>
+        
+        <div class="input-group">
+            <label>Concrete Strength f'c (psi):</label>
+            <input type="number" id="fc" value="4000">
+            
+            <label>Steel Yield Strength fy (psi):</label>
+            <input type="number" id="fy" value="60000">
+            
+            <label>Span Length (ft):</label>
+            <input type="number" id="span" value="20">
+            
+            <label>Beam Width (in):</label>
+            <input type="number" id="width" value="14">
+            
+            <label>Beam Depth (in):</label>
+            <input type="number" id="depth" value="24">
+            
+            <label>Dead Load (psf):</label>
+            <input type="number" id="DL" value="80">
+            
+            <label>Live Load (psf):</label>
+            <input type="number" id="LL" value="50">
+            
+            <label>Concrete Cover (in):</label>
+            <input type="number" id="cover" value="1.5">
+        </div>
+
+        <button onclick="calculate()">Calculate</button>
+        <button onclick="resetValues()">Reset</button>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        function calculate() {
+            // Input values
+            const fc = parseFloat(document.getElementById('fc').value);
+            const fy = parseFloat(document.getElementById('fy').value);
+            const span = parseFloat(document.getElementById('span').value);
+            const b = parseFloat(document.getElementById('width').value);
+            const h = parseFloat(document.getElementById('depth').value);
+            const DL = parseFloat(document.getElementById('DL').value);
+            const LL = parseFloat(document.getElementById('LL').value);
+            const cover = parseFloat(document.getElementById('cover').value);
+
+            // Convert span to inches
+            const L = span * 12;
+
+            // Effective depth
+            const d = h - cover - 0.375 - 0.5; // Assuming #3 stirrups and #4 main bars
+
+            // Load calculations
+            const wu = 1.2*DL + 1.6*LL; // plf
+            const Mu = (wu * Math.pow(span, 2)) / 8 * 12000; // lb-in
+            const Vu = (wu * span) / 2; // lbs
+
+            // Flexural design
+            const phi = 0.9;
+            let As = (Mu / (phi * fy * 0.9 * d)).toFixed(2);
+            
+            // Check minimum steel
+            const As_min = Math.max((3 * Math.sqrt(fc) / fy) * b * d, (200 / fy) * b * d);
+            const As_min_check = As >= As_min;
+
+            // Shear design
+            const Vc = 0.75 * 2 * Math.sqrt(fc) * b * d;
+            const Vs = (Vu / 0.75) - Vc;
+            const s = (0.22 * 60000 * d) / Vs; // Using #3 stirrups (2 legs)
+
+            // Format results
+            let output = `<h3>Design Results:</h3>
+                <p>Required Flexural Steel Area: ${As} in² (Minimum: ${As_min.toFixed(2)} in²)</p>
+                <p>Suggested Reinforcement: ${Math.ceil(As/0.44)} #6 bars (0.44 in² each)</p>
+                <p>Shear Reinforcement: #3 stirrups @ ${Math.min(Math.floor(s), 12)}" spacing</p>
+                <p>Effective Depth: ${d.toFixed(1)}"</p>`;
+
+            // Add warnings
+            if (h < L/16) output += `<p class="warning">Warning: Depth less than L/16 - check deflection!</p>`;
+            if (!As_min_check) output += `<p class="warning">Warning: Steel area below minimum requirement!</p>`;
+
+            document.getElementById('results').innerHTML = output;
+        }
+
+        function resetValues() {
+            document.getElementById('fc').value = 4000;
+            document.getElementById('fy').value = 60000;
+            document.getElementById('span').value = 20;
+            document.getElementById('width').value = 14;
+            document.getElementById('depth').value = 24;
+            document.getElementById('DL').value = 80;
+            document.getElementById('LL').value = 50;
+            document.getElementById('cover').value = 1.5;
+            document.getElementById('results').innerHTML = "";
+        }
+    </script>
+</body>
+</html>
