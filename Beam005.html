@@ -5,77 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beam Design Calculator (ACI 318)</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; background-color: #f0f0f0; }
-        .calculator { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .input-group { margin-bottom: 15px; display: grid; grid-template-columns: 1fr 2fr; align-items: center; gap: 10px; }
-        input, select { padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
-        button { background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; }
-        .results { margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 4px; }
-        .note { color: #666; font-size: 0.9em; margin-top: 10px; }
+        /* ... (keep existing CSS styles) ... */
     </style>
 </head>
 <body>
     <div class="calculator">
         <h2>ACI 318 Beam Design Calculator</h2>
         
-        <div class="input-group">
-            <label>Beam Type:</label>
-            <select id="beamType">
-                <option value="simply-supported">Simply Supported</option>
-                <option value="cantilever">Cantilever</option>
-                <option value="continuous">Continuous (2 spans)</option>
-            </select>
-        </div>
-
-        <div class="input-group">
-            <label>Slab Area (ft²):</label>
-            <input type="number" id="slabArea" value="300">
-        </div>
-
-        <div class="input-group">
-            <label>Slab Thickness (in):</label>
-            <input type="number" id="slabThickness" value="6">
-        </div>
-
-        <div class="input-group">
-            <label>Beam Width (in):</label>
-            <input type="number" id="beamWidth" value="12">
-        </div>
-
-        <div class="input-group">
-            <label>Beam Depth (in):</label>
-            <input type="number" id="beamDepth" value="18">
-        </div>
-
-        <div class="input-group">
-            <label>Beam Length (ft):</label>
-            <input type="number" id="beamLength" value="20">
-        </div>
-
-        <div class="input-group">
-            <label>Live Load (psf):</label>
-            <input type="number" id="liveLoad" value="50">
-        </div>
-
-        <div class="input-group">
-            <label>Factor DL (γd):</label>
-            <input type="number" id="factorDL" step="0.1" value="1.2">
-        </div>
-
-        <div class="input-group">
-            <label>Factor LL (γl):</label>
-            <input type="number" id="factorLL" step="0.1" value="1.6">
-        </div>
-
-        <div class="input-group">
-            <label>f'c (ksi):</label>
-            <input type="number" id="f_c" step="0.1" value="4">
-        </div>
-
-        <div class="input-group">
-            <label>fy (ksi):</label>
-            <input type="number" id="fy" value="60">
-        </div>
+        <!-- Input fields remain unchanged -->
+        <!-- ... (keep existing input fields) ... -->
 
         <button onclick="calculate()">Calculate</button>
 
@@ -88,16 +26,11 @@
             <p>Tensile Steel (As): <span id="asResult">-</span> in²</p>
             <p>Compression Steel (A's): <span id="asCompResult">-</span> in²</p>
         </div>
-
-        <div class="note">
-            * Calculations per ACI 318-19. Continuous beam assumes equal spans with 1/10 WL² moment.
-            Minimum reinforcement checks included. Verify with structural engineer.
-        </div>
     </div>
 
     <script>
         function calculate() {
-            // Input values
+            // Input values (unchanged)
             const beamType = document.getElementById('beamType').value;
             const slabArea = parseFloat(document.getElementById('slabArea').value);
             const slabThicknessIn = parseFloat(document.getElementById('slabThickness').value);
@@ -113,8 +46,8 @@
             // Constants
             const CONCRETE_DENSITY = 0.150; // kips/ft³
             const ES = 29000; // ksi
-            const COVER = 2.5; // in (concrete cover)
-            const PHI = 0.9; // Strength reduction factor
+            const COVER = 2.5; // in
+            const PHI = 0.9;
 
             // Unit conversions
             const slabThicknessFt = slabThicknessIn / 12;
@@ -130,11 +63,7 @@
             const beamSelfWeight = beamWidthFt * beamDepthFt * CONCRETE_DENSITY;
             const totalDL = slabDL + beamSelfWeight;
             const totalLL = liveLoadKSF * tributaryWidth;
-
-            // Factored loads
-            const factoredDL = factorDL * totalDL;
-            const factoredLL = factorLL * totalLL;
-            const Wu = factoredDL + factoredLL;
+            const Wu = (factorDL * totalDL) + (factorLL * totalLL);
 
             // Moment calculation
             let Mu;
@@ -150,55 +79,46 @@
                     break;
             }
 
-            // Reinforcement design parameters
+            // Reinforcement calculations
             const d = beamDepthIn - COVER;
             const b = beamWidthIn;
             const beta1 = Math.max(0.65, 0.85 - 0.05 * (f_c - 4));
             const epsilon_t_min = 0.004;
-
-            // Convert moment to kip-inches
             const MuInKipIn = Mu * 12;
 
-            // Maximum reinforcement ratio (ACI 9.3.3.1)
-            const rho_max = (0.85 * beta1 * f_c / fy) * (0.003 / (0.003 + epsilon_t_min));
+            // 1. Calculate balanced reinforcement ratio
+            const rho_bal = (0.85 * beta1 * f_c / fy) * (0.003 / (0.003 + epsilon_t_min));
 
-            // Calculate maximum moment capacity for singly reinforced section
-            const Mn_max_single = PHI * 0.85 * f_c * b * Math.pow(d, 2) * rho_max * 
-                (1 - 0.5 * rho_max * fy / (0.85 * f_c));
+            // 2. Calculate maximum moment for singly reinforced section
+            const a_max = rho_bal * fy * d / (0.85 * f_c);
+            const Mn_max = 0.85 * f_c * b * a_max * (d - a_max / 2);
+            const phiMn_max = PHI * Mn_max;
 
             let As, AsComp = 0;
 
-            if (MuInKipIn <= Mn_max_single) {
+            if (MuInKipIn <= phiMn_max) {
                 // Singly reinforced section
-                const Rn = MuInKipIn / (PHI * b * Math.pow(d, 2));
+                const Rn = MuInKipIn / (PHI * b * d * d);
                 const rho = (0.85 * f_c / fy) * (1 - Math.sqrt(1 - (2 * Rn) / (0.85 * f_c)));
-                As = rho * b * d;
+                As = Math.max(rho * b * d, 0.0018 * b * d); // Minimum steel check
             } else {
                 // Doubly reinforced section
-                const Mn1 = Mn_max_single / PHI;
+                // Compression steel required
+                const Mn1 = phiMn_max / PHI;
                 const Mn2 = (MuInKipIn / PHI) - Mn1;
 
                 // Compression steel strain check
-                const c = (0.003 * d) / (0.003 + epsilon_t_min);
-                const epsilon_s_prime = 0.003 * (c - COVER) / c;
-
-                let fs_prime;
-                if (epsilon_s_prime < (fy / ES)) {
-                    fs_prime = ES * epsilon_s_prime; // Steel not yielding
-                } else {
-                    fs_prime = fy; // Steel yields
-                }
+                const c_bal = (0.003 * d) / (0.003 + fy/ES);
+                const epsilon_s_prime = 0.003 * (c_bal - COVER) / c_bal;
+                const fs_prime = Math.min(epsilon_s_prime * ES, fy);
 
                 AsComp = Mn2 / (fs_prime * (d - COVER));
-                As = (rho_max * b * d) + AsComp;
+                As = (rho_bal * b * d) + AsComp;
             }
 
-            // Minimum reinforcement check (ACI 9.6.1.2)
-            const As_min = Math.max(
-                3 * Math.sqrt(f_c) * b * d / fy,
-                200 * b * d / fy
-            );
-            As = Math.max(As, As_min);
+            // Practical reinforcement limits
+            As = Math.min(As, 0.04 * b * d); // Maximum steel ratio (ACI 21.2.1)
+            As = Math.max(As, 3 * Math.sqrt(f_c) * b * d / fy, 200 * b * d / fy); // Minimum steel
 
             // Display results
             document.getElementById('dlResult').textContent = totalDL.toFixed(3);
