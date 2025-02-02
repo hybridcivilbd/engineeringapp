@@ -1,0 +1,174 @@
+Here's the full Beam Design Calculator with HTML, CSS, and JavaScript integrated into a single file for easy use.
+
+
+---
+
+Complete index.html File (Everything in One File)
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beam Design Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        .container {
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            margin: 20px auto;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        h2 {
+            color: #333;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #007BFF;
+            color: white;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        h3 {
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Beam Design Calculator</h2>
+
+        <label>Beam Span (ft):</label>
+        <input type="number" id="span" placeholder="Enter beam span">
+
+        <label>Beam Depth (in):</label>
+        <input type="number" id="depth" placeholder="Enter beam depth">
+
+        <label>Beam Width (in):</label>
+        <input type="number" id="width" placeholder="Enter beam width">
+
+        <label>Slab Area (sq. ft):</label>
+        <input type="number" id="slabArea" placeholder="Enter slab area">
+
+        <label>Slab Thickness (in):</label>
+        <input type="number" id="slabThickness" placeholder="Enter slab thickness">
+
+        <label>Factor Dead Load (kN/m²):</label>
+        <input type="number" id="deadLoad" placeholder="Enter dead load factor">
+
+        <label>Factor Live Load (kN/m²):</label>
+        <input type="number" id="liveLoad" placeholder="Enter live load factor">
+
+        <label>Beam Type:</label>
+        <select id="beamType">
+            <option value="cantilever">Cantilever</option>
+            <option value="simply-supported">Simply Supported</option>
+            <option value="continuous">Continuous</option>
+        </select>
+
+        <button onclick="calculateBeam()">Calculate</button>
+
+        <h3>Results:</h3>
+        <p><strong>Bending Moment (kN·m):</strong> <span id="moment"></span></p>
+        <p><strong>Shear Force (kN):</strong> <span id="shear"></span></p>
+        <p><strong>Factored Load (kN/m):</strong> <span id="factoredLoad"></span></p>
+        <p><strong>Compressive Reinforcement:</strong> <span id="compReinforcement"></span></p>
+        <p><strong>Tensile Reinforcement:</strong> <span id="tenReinforcement"></span></p>
+    </div>
+
+    <script>
+        function calculateBeam() {
+            let span = parseFloat(document.getElementById("span").value);
+            let depth = parseFloat(document.getElementById("depth").value);
+            let width = parseFloat(document.getElementById("width").value);
+            let slabArea = parseFloat(document.getElementById("slabArea").value);
+            let slabThickness = parseFloat(document.getElementById("slabThickness").value);
+            let deadLoad = parseFloat(document.getElementById("deadLoad").value);
+            let liveLoad = parseFloat(document.getElementById("liveLoad").value);
+            let beamType = document.getElementById("beamType").value;
+
+            if (isNaN(span) || isNaN(depth) || isNaN(width) || isNaN(slabArea) || isNaN(slabThickness) || isNaN(deadLoad) || isNaN(liveLoad)) {
+                alert("Please enter valid numbers in all fields.");
+                return;
+            }
+
+            // **Load Calculations**
+            let selfWeight = (width / 12) * (depth / 12) * 25;  // kN/m (Assuming concrete density 25 kN/m³)
+            let totalLoad = selfWeight + (deadLoad * slabArea) + (liveLoad * slabArea);
+            let factoredLoad = 1.5 * totalLoad;
+
+            // **Moment and Shear Calculations**
+            let moment, shear;
+            if (beamType === "simply-supported") {
+                moment = (factoredLoad * span * span) / 8;  // kN·m
+                shear = (factoredLoad * span) / 2;  // kN
+            } else if (beamType === "cantilever") {
+                moment = (factoredLoad * span * span) / 2;
+                shear = factoredLoad * span;
+            } else {
+                moment = (factoredLoad * span * span) / 10;  // Approximate for continuous
+                shear = (factoredLoad * span) / 3;
+            }
+
+            // **Reinforcement Design Approximation**
+            let tensileReinforcement = (moment * 1000000) / (0.87 * 415 * (depth - 50));  // mm²
+            let compressiveReinforcement = tensileReinforcement * 0.3; // Approximate 30% of tensile steel
+
+            // **Display Results**
+            document.getElementById("moment").innerText = moment.toFixed(2);
+            document.getElementById("shear").innerText = shear.toFixed(2);
+            document.getElementById("factoredLoad").innerText = factoredLoad.toFixed(2);
+            document.getElementById("compReinforcement").innerText = compressiveReinforcement.toFixed(2) + " mm²";
+            document.getElementById("tenReinforcement").innerText = tensileReinforcement.toFixed(2) + " mm²";
+        }
+    </script>
+
+</body>
+</html>
+
+
+---
+
+Features in this Version
+
+✔️ All-in-One File (HTML, CSS, JavaScript)
+✔️ User Inputs for Beam Design
+✔️ Factored Load Calculation
+✔️ Moment and Shear Force Calculation
+✔️ Tensile & Compressive Reinforcement Estimation
+
+
+---
+
+Next Steps
+
+Add BMD & SFD Graph
+
+Improve Reinforcement Detailing
+
+Generate Downloadable Reports
+
+
+Let me know if you need more features or modifications!
+
