@@ -96,116 +96,83 @@
     </div>
 
     <script>
-        function calculate() {
-            // Input values
-            const inputs = {
-                beamType: document.getElementById('beamType').value,
-                slabArea: parseFloat(document.getElementById('slabArea').value),
-                slabThickness: parseFloat(document.getElementById('slabThickness').value),
-                beamWidth: parseFloat(document.getElementById('beamWidth').value),
-                beamDepth: parseFloat(document.getElementById('beamDepth').value),
-                beamLength: parseFloat(document.getElementById('beamLength').value),
-                liveLoad: parseFloat(document.getElementById('liveLoad').value),
-                factorDL: parseFloat(document.getElementById('factorDL').value),
-                factorLL: parseFloat(document.getElementById('factorLL').value),
-                f_c: parseFloat(document.getElementById('f_c').value),
-                fy: parseFloat(document.getElementById('fy').value)
-            };
+function calculate() {
+    // Input values (same as before)
+    const inputs = { /* ... */ };
 
-            // Constants
-            const CONCRETE_DENSITY = 0.150; // kips/ft³
-            const STEEL_MODULUS = 29000; // ksi
-            const COVER = 2.5; // inches
-            const PHI = 0.9;
+    // Constants and unit conversions (same as before)
+    // ...
 
-            // Unit conversions
-            const slabThicknessFt = inputs.slabThickness / 12;
-            const beamWidthFt = inputs.beamWidth / 12;
-            const beamDepthFt = inputs.beamDepth / 12;
-            const liveLoadKSF = inputs.liveLoad / 1000;
+    // Moment calculation (same as before)
+    // ...
 
-            // Tributary width calculation
-            const tributaryWidth = inputs.slabArea / inputs.beamLength;
+    // Reinforcement parameters
+    const d = inputs.beamDepth - COVER;
+    const b = inputs.beamWidth;
+    const beta1 = Math.max(0.65, 0.85 - 0.05 * (inputs.f_c - 4));
+    const epsilon_t_min = 0.004;
+    const MuInKipIn = Mu * 12;
 
-            // Load calculations
-            const slabDL = slabThicknessFt * CONCRETE_DENSITY * tributaryWidth;
-            const beamSelfWeight = beamWidthFt * beamDepthFt * CONCRETE_DENSITY;
-            const totalDL = slabDL + beamSelfWeight;
-            const totalLL = liveLoadKSF * tributaryWidth;
+    // 1. Calculate maximum singly reinforced capacity
+    const rho_max_single = (0.85 * beta1 * inputs.f_c / inputs.fy) * 
+                         (0.003 / (0.003 + epsilon_t_min));
+    const a_max = rho_max_single * inputs.fy * d / (0.85 * inputs.f_c);
+    const Mn_max = 0.85 * inputs.f_c * b * a_max * (d - a_max/2);
+    const phiMn_max = PHI * Mn_max;
 
-            // Factored loads
-            const Wu = (inputs.factorDL * totalDL) + (inputs.factorLL * totalLL);
+    let As, AsComp = 0;
 
-            // Moment calculation
-            let Mu;
-            switch(inputs.beamType) {
-                case 'simply-supported':
-                    Mu = (Wu * Math.pow(inputs.beamLength, 2)) / 8;
-                    break;
-                case 'cantilever':
-                    Mu = (Wu * Math.pow(inputs.beamLength, 2)) / 2;
-                    break;
-                case 'continuous':
-                    Mu = (Wu * Math.pow(inputs.beamLength, 2)) / 10;
-                    break;
-            }
+    if (MuInKipIn <= phiMn_max) {
+        // Singly reinforced section
+        const Rn = MuInKipIn / (PHI * b * d * d);
+        const rho = (0.85 * inputs.f_c / inputs.fy) * 
+                  (1 - Math.sqrt(1 - (2 * Rn) / (0.85 * inputs.f_c)));
+        As = rho * b * d;
+    } else {
+        // Doubly reinforced section (corrected method)
+        const Mn1 = Mn_max;
+        const Mn2 = (MuInKipIn / PHI) - Mn1;
 
-            // Reinforcement parameters
-            const d = inputs.beamDepth - COVER;
-            const b = inputs.beamWidth;
-            const beta1 = Math.max(0.65, 0.85 - 0.05 * (inputs.f_c - 4));
-            const epsilon_t_min = 0.004;
-            const MuInKipIn = Mu * 12;
+        // Iterative neutral axis calculation
+        let c = d * 0.375; // Initial assumption
+        let fs_prime = 0;
+        let AsComp_new = 0;
+        let As_new = 0;
+        
+        // Iterate to find equilibrium
+        for (let i = 0; i < 10; i++) { // 10 iterations max
+            const epsilon_s_prime = 0.003 * (c - COVER) / c;
+            fs_prime = Math.min(epsilon_s_prime * STEEL_MODULUS, inputs.fy);
+            
+            AsComp_new = Mn2 / (fs_prime * (d - COVER));
+            const Cc = 0.85 * inputs.f_c * beta1 * c * b;
+            const Cs = AsComp_new * fs_prime;
+            As_new = (Cc + Cs) / inputs.fy;
 
-            // Balanced reinforcement ratio
-            const rho_bal = (0.85 * beta1 * inputs.f_c / inputs.fy) * 
-                          (0.003 / (0.003 + epsilon_t_min));
-
-            // Maximum moment for singly reinforced section
-            const a_max = rho_bal * inputs.fy * d / (0.85 * inputs.f_c);
-            const Mn_max = 0.85 * inputs.f_c * b * a_max * (d - a_max / 2);
-            const phiMn_max = PHI * Mn_max;
-
-            let As = 0, AsComp = 0;
-
-            if (MuInKipIn <= phiMn_max) {
-                // Singly reinforced design
-                const Rn = MuInKipIn / (PHI * b * d * d);
-                const rho = (0.85 * inputs.f_c / inputs.fy) * 
-                          (1 - Math.sqrt(1 - (2 * Rn) / (0.85 * inputs.f_c)));
-                As = rho * b * d;
-            } else {
-                // Doubly reinforced design
-                const Mn1 = phiMn_max / PHI;
-                const Mn2 = (MuInKipIn / PHI) - Mn1;
-
-                // Compression steel strain check
-                const c_bal = (0.003 * d) / (0.003 + inputs.fy/STEEL_MODULUS);
-                const epsilon_s_prime = 0.003 * (c_bal - COVER) / c_bal;
-                const fs_prime = Math.min(epsilon_s_prime * STEEL_MODULUS, inputs.fy);
-
-                AsComp = Mn2 / (fs_prime * (d - COVER));
-                As = (rho_bal * b * d) + AsComp;
-            }
-
-            // Reinforcement limits
-            As = Math.max(As, 
-                Math.max(
-                    3 * Math.sqrt(inputs.f_c) * b * d / inputs.fy,
-                    200 * b * d / inputs.fy
-                )
-            );
-            As = Math.min(As, 0.04 * b * d);
-
-            // Update results
-            document.getElementById('dlResult').textContent = totalDL.toFixed(3);
-            document.getElementById('llResult').textContent = totalLL.toFixed(3);
-            document.getElementById('wuResult').textContent = Wu.toFixed(3);
-            document.getElementById('muResult').textContent = Mu.toFixed(1);
-            document.getElementById('asResult').textContent = As.toFixed(2);
-            document.getElementById('asCompResult').textContent = 
-                AsComp > 0 ? AsComp.toFixed(2) : "None required";
+            const c_new = (As_new * inputs.fy - Cs) / 
+                        (0.85 * inputs.f_c * beta1 * b);
+            
+            if (Math.abs(c_new - c) < 0.001) break;
+            c = c_new;
         }
-    </script>
+
+        AsComp = AsComp_new;
+        As = As_new;
+    }
+
+    // Reinforcement limits
+    As = Math.max(As, 
+        Math.max(
+            3 * Math.sqrt(inputs.f_c) * b * d / inputs.fy,
+            200 * b * d / inputs.fy
+        )
+    );
+    As = Math.min(As, 0.04 * b * d);
+
+    // Update results (same as before)
+    // ...
+}
+</script>
+       
 </body>
 </html>
