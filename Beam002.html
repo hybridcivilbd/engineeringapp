@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beam Design Calculator (Imperial)</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; background-color: #f0f0f0; }
+        .calculator { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .input-group { margin-bottom: 15px; display: grid; grid-template-columns: 1fr 2fr; align-items: center; gap: 10px; }
+        input, select { padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+        .results { margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 4px; }
+        .note { color: #666; font-size: 0.9em; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h2>Beam Design Calculator (Imperial)</h2>
+        
+        <div class="input-group">
+            <label>Beam Type:</label>
+            <select id="beamType">
+                <option value="simply-supported">Simply Supported</option>
+                <option value="cantilever">Cantilever</option>
+                <option value="continuous">Continuous</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Slab Area (ft²):</label>
+            <input type="number" id="slabArea" value="300">
+        </div>
+
+        <div class="input-group">
+            <label>Slab Thickness (in):</label>
+            <input type="number" id="slabThickness" value="6">
+        </div>
+
+        <div class="input-group">
+            <label>Beam Width (in):</label>
+            <input type="number" id="beamWidth" value="12">
+        </div>
+
+        <div class="input-group">
+            <label>Beam Depth (in):</label>
+            <input type="number" id="beamDepth" value="18">
+        </div>
+
+        <div class="input-group">
+            <label>Beam Length (ft):</label>
+            <input type="number" id="beamLength" value="20">
+        </div>
+
+        <div class="input-group">
+            <label>Live Load (psf):</label>
+            <input type="number" id="liveLoad" value="50">
+        </div>
+
+        <div class="input-group">
+            <label>f'c (ksi):</label>
+            <input type="number" id="f_c" step="0.1" value="4">
+        </div>
+
+        <div class="input-group">
+            <label>fy (ksi):</label>
+            <input type="number" id="fy" value="60">
+        </div>
+
+        <button onclick="calculate()">Calculate</button>
+
+        <div class="results">
+            <h3>Results:</h3>
+            <p>Factored Load (Wu): <span id="wuResult">-</span> kips/ft</p>
+            <p>Factored Moment (Mu): <span id="muResult">-</span> kip-ft</p>
+            <p>Tensile Reinforcement (As): <span id="asResult">-</span> in²</p>
+            <p>Compression Reinforcement (A's): <span id="asCompResult">-</span> in²</p>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            // Get input values
+            const beamType = document.getElementById('beamType').value;
+            const slabArea = parseFloat(document.getElementById('slabArea').value);
+            const slabThicknessIn = parseFloat(document.getElementById('slabThickness').value);
+            const beamWidthIn = parseFloat(document.getElementById('beamWidth').value);
+            const beamDepthIn = parseFloat(document.getElementById('beamDepth').value);
+            const beamLength = parseFloat(document.getElementById('beamLength').value);
+            const liveLoad = parseFloat(document.getElementById('liveLoad').value);
+            const f_c = parseFloat(document.getElementById('f_c').value);
+            const fy = parseFloat(document.getElementById('fy').value);
+
+            // Unit conversions
+            const slabThicknessFt = slabThicknessIn / 12;
+            const beamWidthFt = beamWidthIn / 12;
+            const beamDepthFt = beamDepthIn / 12;
+            const liveLoadKSF = liveLoad / 1000;
+
+            // Material properties
+            const concreteDensity = 0.150; // kips/ft³
+
+            // Load calculations
+            const tributaryWidth = slabArea / beamLength;
+            const slabLoad = slabThicknessFt * concreteDensity * tributaryWidth;
+            const beamSelfWeight = beamWidthFt * beamDepthFt * concreteDensity;
+            const totalDL = slabLoad + beamSelfWeight;
+            const totalLL = liveLoadKSF * tributaryWidth;
+
+            // Factored load
+            const Wu = (1.2 * totalDL) + (1.6 * totalLL);
+
+            // Factored moment
+            let Mu;
+            switch(beamType) {
+                case 'simply-supported':
+                    Mu = (Wu * Math.pow(beamLength, 2)) / 8;
+                    break;
+                case 'cantilever':
+                    Mu = (Wu * Math.pow(beamLength, 2)) / 2;
+                    break;
+                case 'continuous':
+                    Mu = (Wu * Math.pow(beamLength, 2)) / 10; // Simplified assumption
+                    break;
+            }
+
+            // Reinforcement calculations
+            const d = beamDepthIn - 2.5; // Effective depth
+            const b = beamWidthIn;
+            const phi = 0.9;
+            const beta1 = Math.max(0.65, 0.85 - 0.05*(f_c - 4));
+            const MuInKipIn = Mu * 12;
+
+            // Calculate required reinforcement
+            let As, AsComp = 0;
+            const Rn = MuInKipIn / (phi * b * Math.pow(d, 2));
+            const rhoMax = (0.85 * beta1 * f_c / fy) * (0.003 / (0.003 + 0.005));
+            
+            if(Rn < (0.85 * f_c * (1 - Math.sqrt(1 - (2 * Rn) / (0.85 * f_c))))) {
+                As = (0.85 * f_c * b * d / fy) * (1 - Math.sqrt(1 - (2 * Rn) / (0.85 * f_c)));
+            } else {
+                // Compression reinforcement needed
+                const MMax = phi * 0.85 * f_c * b * d * (rhoMax * d) * (1 - 0.5 * rhoMax * fy / (0.85 * f_c));
+                const M2 = MuInKipIn - MMax;
+                AsComp = M2 / (phi * fy * (d - 2.5));
+                As = (rhoMax * b * d) + AsComp;
+            }
+
+            // Display results
+            document.getElementById('wuResult').textContent = Wu.toFixed(3);
+            document.getElementById('muResult').textContent = Mu.toFixed(1);
+            document.getElementById('asResult').textContent = As.toFixed(2);
+            document.getElementById('asCompResult').textContent = AsComp > 0 ? AsComp.toFixed(2) : "None required";
+        }
+    </script>
+</body>
+</html>
