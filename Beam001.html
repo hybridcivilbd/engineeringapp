@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beam Load Calculator</title>
+    <title>Beam Load Calculator (Imperial)</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -54,44 +54,44 @@
 </head>
 <body>
     <div class="calculator">
-        <h2>Beam Load and Moment Calculator</h2>
+        <h2>Beam Load and Moment Calculator (Imperial)</h2>
         
         <div class="input-group">
-            <label>Slab Area (m²):</label>
-            <input type="number" id="slabArea" step="0.1" value="30">
+            <label>Slab Area (ft²):</label>
+            <input type="number" id="slabArea" step="0.1" value="300">
         </div>
 
         <div class="input-group">
-            <label>Slab Thickness (m):</label>
-            <input type="number" id="slabThickness" step="0.01" value="0.15">
+            <label>Slab Thickness (in):</label>
+            <input type="number" id="slabThickness" step="0.1" value="6">
         </div>
 
         <div class="input-group">
-            <label>Beam Width (m):</label>
-            <input type="number" id="beamWidth" step="0.01" value="0.3">
+            <label>Beam Width (in):</label>
+            <input type="number" id="beamWidth" step="0.1" value="12">
         </div>
 
         <div class="input-group">
-            <label>Beam Depth (m):</label>
-            <input type="number" id="beamDepth" step="0.01" value="0.5">
+            <label>Beam Depth (in):</label>
+            <input type="number" id="beamDepth" step="0.1" value="18">
         </div>
 
         <div class="input-group">
-            <label>Beam Length (m):</label>
-            <input type="number" id="beamLength" step="0.1" value="5">
+            <label>Beam Length (ft):</label>
+            <input type="number" id="beamLength" step="0.1" value="20">
         </div>
 
         <div class="input-group">
-            <label>Live Load (kN/m²):</label>
-            <input type="number" id="liveLoad" step="0.1" value="3">
+            <label>Live Load (psf):</label>
+            <input type="number" id="liveLoad" step="1" value="50">
         </div>
 
         <button onclick="calculate()">Calculate</button>
 
         <div class="results" id="results">
             <h3>Results:</h3>
-            <p>Factored Load (Wu): <span id="wuResult">-</span> kN/m</p>
-            <p>Factored Moment (Mu): <span id="muResult">-</span> kN·m</p>
+            <p>Factored Load (Wu): <span id="wuResult">-</span> kips/ft</p>
+            <p>Factored Moment (Mu): <span id="muResult">-</span> kip-ft</p>
         </div>
     </div>
 
@@ -99,14 +99,14 @@
         function calculate() {
             // Get input values
             const slabArea = parseFloat(document.getElementById('slabArea').value);
-            const slabThickness = parseFloat(document.getElementById('slabThickness').value);
-            const beamWidth = parseFloat(document.getElementById('beamWidth').value);
-            const beamDepth = parseFloat(document.getElementById('beamDepth').value);
+            const slabThickness = parseFloat(document.getElementById('slabThickness').value) / 12; // inches to feet
+            const beamWidth = parseFloat(document.getElementById('beamWidth').value) / 12; // inches to feet
+            const beamDepth = parseFloat(document.getElementById('beamDepth').value) / 12; // inches to feet
             const beamLength = parseFloat(document.getElementById('beamLength').value);
-            const liveLoad = parseFloat(document.getElementById('liveLoad').value);
+            const liveLoad = parseFloat(document.getElementById('liveLoad').value) / 1000; // psf to kips/ft²
 
             // Material properties (concrete)
-            const concreteDensity = 24; // kN/m³
+            const concreteDensity = 0.150; // kips/ft³ (150 lb/ft³)
 
             // Calculations
             // Tributary width (slab width supported by beam)
@@ -117,18 +117,18 @@
             const beamSelfWeight = beamWidth * beamDepth * concreteDensity;
             const totalDeadLoad = slabLoad + beamSelfWeight;
 
-            // Live load
+            // Live load (convert psf to kips/ft)
             const liveLineLoad = liveLoad * tributaryWidth;
 
-            // Factored load (ACI 318 load combination: 1.2D + 1.6L)
+            // Factored load (ACI 318: 1.2D + 1.6L)
             const factoredLoad = (1.2 * totalDeadLoad) + (1.6 * liveLineLoad);
 
             // Factored moment (simply supported beam formula)
             const factoredMoment = (factoredLoad * Math.pow(beamLength, 2)) / 8;
 
             // Display results
-            document.getElementById('wuResult').textContent = factoredLoad.toFixed(2);
-            document.getElementById('muResult').textContent = factoredMoment.toFixed(2);
+            document.getElementById('wuResult').textContent = factoredLoad.toFixed(3);
+            document.getElementById('muResult').textContent = factoredMoment.toFixed(1);
         }
     </script>
 </body>
