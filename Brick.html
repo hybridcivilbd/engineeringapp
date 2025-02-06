@@ -12,19 +12,24 @@
             padding: 20px;
             background-color: #f5f5f5;
         }
+
         .calculator {
             background: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
+
         .input-group {
             margin-bottom: 15px;
         }
+
         label {
             display: block;
             margin-bottom: 5px;
+            font-weight: bold;
         }
+
         input {
             width: 100%;
             padding: 8px;
@@ -32,6 +37,7 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
+
         button {
             background: #4CAF50;
             color: white;
@@ -40,11 +46,20 @@
             border-radius: 4px;
             cursor: pointer;
         }
+
+        button:hover {
+            background: #45a049;
+        }
+
         .results {
             margin-top: 20px;
             padding: 15px;
             background: #e9f7ef;
             border-radius: 4px;
+        }
+
+        .result-item {
+            margin: 10px 0;
         }
     </style>
 </head>
@@ -53,73 +68,78 @@
         <h2>Brickwork Calculator</h2>
         
         <div class="input-group">
-            <label>Brick Dimensions (inches):</label>
-            <input type="number" id="brickLength" placeholder="Length" step="0.01">
-            <input type="number" id="brickHeight" placeholder="Height" step="0.01">
+            <label>Wall Area (sq ft):</label>
+            <input type="number" id="wallArea" step="0.1">
         </div>
 
         <div class="input-group">
-            <label>Wall Area (sq ft):</label>
-            <input type="number" id="wallArea" step="0.01">
+            <label>Brick Height (inch):</label>
+            <input type="number" id="brickHeight" step="0.1">
         </div>
 
-        <button onclick="calculate()">Calculate</button>
+        <div class="input-group">
+            <label>Brick Length (inch):</label>
+            <input type="number" id="brickLength" step="0.1">
+        </div>
+
+        <div class="input-group">
+            <label>Wall Thickness (inch):</label>
+            <input type="number" id="wallThickness" step="0.1">
+        </div>
+
+        <button onclick="calculateMaterials()">Calculate</button>
 
         <div class="results" id="results" style="display: none;">
-            <h3>Results:</h3>
-            <p>Bricks Required: <span id="bricks"></span></p>
-            <p>Cement Required: <span id="cement"></span> kg</p>
-            <p>Sand Required: <span id="sand"></span> CFT</p>
-            <p>Labor Required: <span id="labor"></span></p>
-            <p>Days Required: <span id="days"></span></p>
+            <h3>Calculation Results:</h3>
+            <div class="result-item">Bricks Required: <span id="bricks"></span></div>
+            <div class="result-item">Cement Required: <span id="cement"></span></div>
+            <div class="result-item">Sand Required: <span id="sand"></span></div>
+            <div class="result-item">Labor Days: <span id="labor"></span></div>
         </div>
     </div>
 
     <script>
-        function calculate() {
+        function calculateMaterials() {
             // Get input values
-            const brickLength = parseFloat(document.getElementById('brickLength').value) || 0;
-            const brickHeight = parseFloat(document.getElementById('brickHeight').value) || 0;
-            const wallArea = parseFloat(document.getElementById('wallArea').value) || 0;
+            const wallArea = parseFloat(document.getElementById('wallArea').value);
+            const brickHeight = parseFloat(document.getElementById('brickHeight').value);
+            const brickLength = parseFloat(document.getElementById('brickLength').value);
+            const wallThickness = parseFloat(document.getElementById('wallThickness').value);
 
-            // Constants
-            const mortarThickness = 0.5; // inches
-            const wastePercentage = 5; // 5% waste
-            const dailyOutput = 600; // bricks per day per team
-            const cementPerCFT = 40.8; // kg per CFT cement
-            const mortarPer100Bricks = 0.3; // CFT
+            // Fixed mortar thickness (0.5 inch)
+            const mortarThickness = 0.5;
 
-            // Convert brick dimensions to feet (with mortar)
-            const brickLengthFt = (brickLength + mortarThickness) / 12;
-            const brickHeightFt = (brickHeight + mortarThickness) / 12;
-
-            // Bricks per sq ft
-            const bricksPerSqFt = 1 / (brickLengthFt * brickHeightFt);
+            // Calculations
+            // 1. Number of Bricks
+            const effectiveLength = brickLength + mortarThickness;
+            const effectiveHeight = brickHeight + mortarThickness;
+            const brickAreaWithMortar = effectiveLength * effectiveHeight;
+            const totalWallAreaSqIn = wallArea * 144;
+            let bricks = totalWallAreaSqIn / brickAreaWithMortar;
             
-            // Total bricks (with waste)
-            let bricks = Math.ceil(wallArea * bricksPerSqFt);
-            bricks += Math.ceil(bricks * (wastePercentage/100));
+            // Add 5% waste
+            bricks *= 1.05;
 
-            // Mortar calculation
-            const mortarVolume = (bricks * mortarPer100Bricks)/100;
-            
-            // Cement calculation (1:4 ratio)
-            const cement = (mortarVolume / 5) * cementPerCFT;
-            
-            // Sand calculation
-            const sand = (mortarVolume * 4);
+            // 2. Mortar Calculation
+            const wallVolumeCFT = wallArea * (wallThickness / 12);
+            const brickVolumePerUnit = (brickLength * brickHeight * wallThickness) / 1728;
+            const totalBrickVolume = bricks * brickVolumePerUnit;
+            const mortarVolume = wallVolumeCFT - totalBrickVolume;
 
-            // Labor calculation
-            const days = Math.ceil(bricks / dailyOutput);
-            const labor = days > 0 ? "1 mason + 1 helper" : "Not required";
+            // 3. Cement & Sand (1:3 ratio)
+            const cementCFT = mortarVolume / 4;
+            const cementKg = cementCFT * 40.8;
+            const sandCFT = cementCFT * 3;
+
+            // 4. Labor (300 bricks/day)
+            const laborDays = bricks / 300;
 
             // Display results
             document.getElementById('results').style.display = 'block';
-            document.getElementById('bricks').textContent = bricks.toLocaleString();
-            document.getElementById('cement').textContent = Math.ceil(cement);
-            document.getElementById('sand').textContent = Math.ceil(sand);
-            document.getElementById('labor').textContent = labor;
-            document.getElementById('days').textContent = days;
+            document.getElementById('bricks').textContent = Math.ceil(bricks) + " bricks";
+            document.getElementById('cement').textContent = Math.ceil(cementKg) + " kg";
+            document.getElementById('sand').textContent = sandCFT.toFixed(1) + " CFT";
+            document.getElementById('labor').textContent = laborDays.toFixed(1) + " days";
         }
     </script>
 </body>
