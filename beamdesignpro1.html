@@ -119,31 +119,31 @@
             const f_y = parseFloat(document.getElementById('f_y').value);
 
             // 1. Beam Dimensions (Fixed web width at 10")
-            const h_min = L / 21; // Minimum depth per ACI 318
+            const h_min = L / 21;
             const h = Math.ceil(h_min);
             const b_w = 10; // Fixed web width
 
             // 2. Load Calculations
-            const tributaryWidth = slabArea / (2 * L_ft); // ft
-            const w_slab = (h_f/12) * 150; // psf
-            const SDL = 20; // psf (superimposed dead load)
-            const LL = 50; // psf (live load)
+            const tributaryWidth = slabArea / (2 * L_ft);
+            const w_slab = (h_f/12) * 150;
+            const SDL = 20;
+            const LL = 50;
             
-            const w_total = (w_slab + SDL + LL) * tributaryWidth; // plf
-            const w_self = (b_w/12) * (h/12) * 150; // Self-weight
+            const w_total = (w_slab + SDL + LL) * tributaryWidth;
+            const w_self = (b_w/12) * (h/12) * 150;
             const w = (w_total + w_self);
 
             // 3. Moment Calculations
-            const M_pos = (w * Math.pow(L_ft, 2) / 14.22 * 12); // in-lb
-            const M_neg = (w * Math.pow(L_ft, 2) / 8 * 12); // in-lb
+            const M_pos = (w * Math.pow(L_ft, 2) / 14.22 * 12);
+            const M_neg = (w * Math.pow(L_ft, 2) / 8 * 12);
 
             // 4. Reinforcement Calculations
-            const d = h - 2.5; // Effective depth (2.5" cover)
-            const φ = 0.9; // Strength reduction factor
+            const d = h - 2.5;
+            const φ = 0.9;
 
             // Positive moment (T-beam)
             const b_eff = Math.min(L/4, 16*h_f + b_w, tributaryWidth*12);
-            const A_s_pos = calculateAsTBeam(M_pos, f_c, f_y, b_eff, h_f, d, φ);
+            const A_s_pos = calculateAsTBeam(M_pos, f_c, f_y, b_eff, h_f, d, φ, b_w);
 
             // Negative moment (rectangular)
             const A_s_neg = calculateAsRectangular(M_neg, f_c, f_y, b_w, d, φ);
@@ -175,26 +175,22 @@
             drawBeamReinforcement(A_s_pos.toFixed(2), A_s_neg.toFixed(2));
         }
 
-        function calculateAsTBeam(Mu, f_c, f_y, b_eff, h_f, d, φ) {
-            // T-beam analysis with actual f'c integration
+        function calculateAsTBeam(Mu, f_c, f_y, b_eff, h_f, d, φ, b_w) {
             const beta1 = f_c <= 4000 ? 0.85 : Math.max(0.65, 0.85 - 0.05*(f_c-4000)/1000);
             const C_flange = 0.85 * f_c * b_eff * h_f;
             const Mn_flange = C_flange * (d - h_f/2);
 
             if (Mu/φ <= Mn_flange) {
-                // Compression block within flange
                 const rho = (0.85 * f_c / f_y) * (1 - Math.sqrt(1 - (2 * Mu)/(φ * 0.85 * f_c * b_eff * d*d)));
                 return Math.max(rho * b_eff * d, 0.0033 * b_w * d);
             }
             
-            // Compression block extends into web (simplified)
             const M_web = Mu/φ - Mn_flange;
             const a_web = d - Math.sqrt(d*d - (2*M_web)/(0.85*f_c*b_w));
             return (C_flange + 0.85*f_c*b_w*a_web)/f_y;
         }
 
         function calculateAsRectangular(Mu, f_c, f_y, b_w, d, φ) {
-            // Rectangular section analysis
             const beta1 = f_c <= 4000 ? 0.85 : Math.max(0.65, 0.85 - 0.05*(f_c-4000)/1000);
             const Rn = Mu / (φ * b_w * d * d);
             const rho = (0.85 * f_c / f_y) * (1 - Math.sqrt(1 - (2 * Rn)/(0.85 * f_c)));
@@ -216,13 +212,13 @@
 
             // Draw reinforcement
             ctx.fillStyle = "red";
-            // Bottom reinforcement (positive moment)
+            // Bottom reinforcement
             ctx.beginPath();
             ctx.arc(250, 95, 5, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillText(`${A_s_pos} in²`, 235, 115);
 
-            // Top reinforcement (negative moment)
+            // Top reinforcement
             ctx.fillStyle = "blue";
             ctx.beginPath();
             ctx.arc(100, 55, 5, 0, Math.PI * 2);
