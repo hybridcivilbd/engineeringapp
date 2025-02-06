@@ -39,12 +39,22 @@
             const L = L_ft * 12; // Convert feet to inches
             const slabArea = parseFloat(document.getElementById('slabArea').value);
             const h_f = parseFloat(document.getElementById('slabThickness').value);
-            const f_c = parseFloat(document.getElementById('f_c').value);
+            let f_c = parseFloat(document.getElementById('f_c').value);
             const f_y = parseFloat(document.getElementById('f_y').value);
 
+            // Validate f'c input
             if (isNaN(f_c) || f_c <= 0) {
                 alert("Please enter a valid concrete strength (f'c)");
                 return;
+            }
+
+            // Apply ACI 318 beta1 factor for f'c
+            let beta1;
+            if (f_c <= 4000) {
+                beta1 = 0.85;
+            } else {
+                beta1 = 0.85 - ((f_c - 4000) / 1000) * 0.05;
+                beta1 = Math.max(beta1, 0.65); // Minimum limit per ACI 318
             }
 
             // Beam Minimum Dimensions
@@ -63,7 +73,7 @@
             const w_self = (b_w / 12) * (h / 12) * 150;
             const w = (w_total + w_self).toFixed(2);
 
-            // Moment Calculations (Updated Coefficients for Large Span)
+            // Moment Calculations
             const M_pos = (w * Math.pow(L_ft, 2) / 8.5 * 12).toFixed(0); // Adjusted for practical beams
             const M_neg = (w * Math.pow(L_ft, 2) / 6.5 * 12).toFixed(0); // Adjusted for support regions
 
@@ -73,12 +83,12 @@
             // Effective flange width
             const b_eff = Math.min(L / 4, 16 * h_f + b_w, tributaryWidth * 12);
 
-            // **🔹 Include f'c in Reinforcement Calculation**
-            const beta1 = (f_c <= 4000) ? 0.85 : 0.85 - ((f_c - 4000) / 1000) * 0.05;
-            const phi = 0.9; // Strength reduction factor
+            // Strength Reduction Factor
+            const phi = 0.9;
 
-            const A_s_pos = Math.max((M_pos / (phi * f_y * (d - h_f / 2))).toFixed(2), 0.5); // Min 0.5 in²
-            const A_s_neg = Math.max((M_neg / (phi * f_y * 0.9 * d)).toFixed(2), 0.6); // Min 0.6 in²
+            // Reinforcement Area Calculation
+            const A_s_pos = Math.max((M_pos / (phi * f_y * (d - beta1 * h_f / 2))).toFixed(2), 0.5);
+            const A_s_neg = Math.max((M_neg / (phi * f_y * 0.9 * d)).toFixed(2), 0.6);
 
             document.getElementById('result').innerHTML = `
                 <h3>Design Results</h3>
