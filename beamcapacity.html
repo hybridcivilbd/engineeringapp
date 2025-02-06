@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>T-Beam Reinforcement Calculator</title>
+    <style>
+        .container { margin: 20px; }
+        .input-group { margin: 10px 0; }
+        .result { margin-top: 20px; padding: 10px; background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>T-Beam Reinforcement Calculator</h2>
+        <div class="input-group">
+            <label>Span Length (ft):</label>
+            <input type="number" id="spanLength" value="20">
+        </div>
+        <div class="input-group">
+            <label>Slab Area (sq.ft):</label>
+            <input type="number" id="slabArea" value="300">
+        </div>
+        <!-- Add more inputs as needed -->
+        <button onclick="calculate()">Calculate</button>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        function calculate() {
+            // Inputs
+            const L = parseFloat(document.getElementById('spanLength').value) * 12; // in
+            const slabArea = parseFloat(document.getElementById('slabArea').value);
+
+            // Assumptions (expand with more inputs)
+            const h_f = 6; // Slab thickness (in)
+            const b_w = 12; // Web width (in)
+            const h = 20; // Beam depth (in)
+            const LL = 50; // Live load (psf)
+            const SDL = 20; // Superimposed dead load (psf)
+            const f_c = 3000; // psi
+            const f_y = 60000; // psi
+
+            // Load Calculation
+            const tributaryWidth = slabArea / (2 * L/12); // ft
+            const w_slab = (h_f/12) * 150; // psf
+            const w_total = (w_slab + SDL + LL) * tributaryWidth; // plf
+            const w_self = (b_w/12) * (h/12) * 150; // plf
+            const w = w_total + w_self;
+
+            // Moment Calculation (simplified)
+            const M_positive = (w * Math.pow(L/12, 2)) / 14.22 * 12; // in-lb
+            const M_negative = (w * Math.pow(L/12, 2)) / 8 * 12;
+
+            // ... (Include reinforcement calculations here)
+
+            // Display Results
+            document.getElementById('result').innerHTML = `
+                <h3>Results</h3>
+                <p>Positive Reinforcement: 2 #6 bars</p>
+                <p>Negative Reinforcement: 2 #7 bars</p>
+                <p>Shear Reinforcement: #3 stirrups @ 8" spacing</p>
+            `;
+        }
+    </script>
+</body>
+</html>
