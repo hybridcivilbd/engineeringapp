@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brickwork Calculator</title>
+    <style>
+        /* Previous CSS remains unchanged */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .result-item {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: white;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .result-item h3 {
+            color: #333;
+            font-size: 1em;
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            color: #4CAF50;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        @media (min-width: 600px) {
+            .input-row {
+                display: flex;
+                gap: 15px;
+            }
+            
+            .input-row .input-group {
+                flex: 1;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Brickwork Calculator</h1>
+        
+        <div class="input-row">
+            <div class="input-group">
+                <label>Wall Area (sq.ft)</label>
+                <input type="number" id="wallArea" value="100">
+            </div>
+            
+            <div class="input-group">
+                <label>Wall Thickness</label>
+                <select id="wallThickness">
+                    <option value="1">1 Brick (5")</option>
+                    <option value="2">2 Bricks (10")</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="input-row">
+            <div class="input-group">
+                <label>Brick Length (inches)</label>
+                <input type="number" id="brickLength" value="10">
+            </div>
+            <div class="input-group">
+                <label>Brick Width (inches)</label>
+                <input type="number" id="brickWidth" value="5">
+            </div>
+            <div class="input-group">
+                <label>Brick Height (inches)</label>
+                <input type="number" id="brickHeight" value="3">
+            </div>
+        </div>
+
+        <div class="input-row">
+            <div class="input-group">
+                <label>Mortar Ratio (Cement:Sand)</label>
+                <input type="text" id="mortarRatio" value="1:4" placeholder="e.g., 1:4">
+            </div>
+            <div class="input-group">
+                <label>Daily Bricklaying Capacity</label>
+                <input type="number" id="dailyCapacity" value="500">
+            </div>
+            <div class="input-group">
+                <label>Wastage Percentage (%)</label>
+                <input type="number" id="wastage" value="5" min="0" step="1">
+            </div>
+        </div>
+
+        <button onclick="calculate()">Calculate</button>
+
+        <div class="results">
+            <div class="result-item">
+                <h3>Total Bricks Needed (incl. wastage)</h3>
+                <div class="result-value" id="bricksNeeded">-</div>
+            </div>
+            <div class="result-item">
+                <h3>Cement Required (bags)</h3>
+                <div class="result-value" id="cementNeeded">-</div>
+            </div>
+            <div class="result-item">
+                <h3>Sand Required (cu.ft)</h3>
+                <div class="result-value" id="sandNeeded">-</div>
+            </div>
+            <div class="result-item">
+                <h3>Days Required</h3>
+                <div class="result-value" id="daysNeeded">-</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            try {
+                // Get input values
+                const wallArea = parseFloat(document.getElementById('wallArea').value);
+                const wallThickness = parseInt(document.getElementById('wallThickness').value);
+                const brickLength = parseFloat(document.getElementById('brickLength').value);
+                const brickWidth = parseFloat(document.getElementById('brickWidth').value);
+                const brickHeight = parseFloat(document.getElementById('brickHeight').value);
+                const dailyCapacity = parseFloat(document.getElementById('dailyCapacity').value);
+                const wastage = parseFloat(document.getElementById('wastage').value) / 100;
+                
+                // Parse mortar ratio
+                const ratioInput = document.getElementById('mortarRatio').value;
+                const ratioParts = ratioInput.split(':').map(part => parseFloat(part.trim()));
+                const [cementPart, sandPart] = ratioParts.length === 2 && 
+                                             !isNaN(ratioParts[0]) && 
+                                             !isNaN(ratioParts[1]) ? 
+                                             ratioParts : [1, 4]; // Default to 1:4
+
+                // Calculations
+                const thicknessInches = wallThickness === 1 ? 5 : 10;
+                const thicknessFeet = thicknessInches / 12;
+                const wallVolume = wallArea * thicknessFeet;
+
+                // Brick volume with mortar (0.5" joint)
+                const brickVolumeWithMortar = (
+                    (brickLength + 0.5) * 
+                    (brickWidth + 0.5) * 
+                    (brickHeight + 0.5)
+                ) / Math.pow(12, 3);
+
+                // Calculate base quantities without wastage
+                const baseBricks = wallVolume / brickVolumeWithMortar;
+                const brickVolumeWithoutMortar = (
+                    brickLength * 
+                    brickWidth * 
+                    brickHeight
+                ) / Math.pow(12, 3);
+                
+                // Apply wastage
+                const bricksNeeded = Math.ceil(baseBricks * (1 + wastage));
+                const mortarVolume = (wallVolume - (baseBricks * brickVolumeWithoutMortar)) * (1 + wastage);
+
+                // Cement and sand calculation
+                const totalParts = cementPart + sandPart;
+                const cementBags = Math.ceil((mortarVolume * cementPart) / totalParts);
+                const sandVolume = (mortarVolume * sandPart) / totalParts;
+
+                // Days calculation
+                const daysNeeded = Math.ceil(bricksNeeded / dailyCapacity);
+
+                // Display results
+                document.getElementById('bricksNeeded').textContent = bricksNeeded;
+                document.getElementById('cementNeeded').textContent = cementBags;
+                document.getElementById('sandNeeded').textContent = sandVolume.toFixed(2);
+                document.getElementById('daysNeeded').textContent = daysNeeded;
+
+            } catch (error) {
+                alert("Error in calculations. Please check your inputs!");
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
