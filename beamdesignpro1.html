@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T-Beam Design Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .container {
+            max-width: 90%;
+            width: 500px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .input-group {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        label {
+            font-size: 14px;
+            flex: 1;
+        }
+        input {
+            flex: 1;
+            padding: 5px;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background: #eef;
+            font-size: 14px;
+            border-radius: 5px;
+        }
+        #canvasContainer {
+            text-align: center;
+            margin-top: 20px;
+            width: 100%;
+        }
+        canvas {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>T-Beam Design Calculator</h2>
+        
+        <div class="input-group">
+            <label>Span Length (ft):</label>
+            <input type="number" id="spanLength" value="20" step="1">
+        </div>
+        <div class="input-group">
+            <label>Slab Area (sq.ft):</label>
+            <input type="number" id="slabArea" value="300" step="10">
+        </div>
+        <div class="input-group">
+            <label>Slab Thickness (in):</label>
+            <input type="number" id="slabThickness" value="6" step="0.5">
+        </div>
+        <div class="input-group">
+            <label>Concrete Strength f'c (psi):</label>
+            <input type="number" id="f_c" value="3000" step="100">
+        </div>
+        <div class="input-group">
+            <label>Steel Yield Strength fy (psi):</label>
+            <input type="number" id="f_y" value="60000" step="1000">
+        </div>
+
+        <button onclick="calculate()">Calculate</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <div id="canvasContainer">
+        <h3>Beam Reinforcement Diagram</h3>
+        <canvas id="beamCanvas"></canvas>
+    </div>
+
+    <script>
+        function calculate() {
+            // Input values
+            const L_ft = parseFloat(document.getElementById('spanLength').value);
+            const L = L_ft * 12; // Convert to inches
+            const slabArea = parseFloat(document.getElementById('slabArea').value);
+            const h_f = parseFloat(document.getElementById('slabThickness').value);
+            const f_c = parseFloat(document.getElementById('f_c').value);
+            const f_y = parseFloat(document.getElementById('f_y').value);
+
+            // 1. Beam Dimensions (Fixed web width at 10")
+            const h_min = L / 21; // Minimum depth per ACI 318
+            const h = Math.ceil(h_min);
+            const b_w = 10; // Fixed web width
+
+            // 2. Load Calculations
+            const tributaryWidth = slabArea / (2 * L_ft); // ft
+            const w_slab = (h_f/12) * 150; // psf
+            const SDL = 20; // psf (superimposed dead load)
+            const LL = 50; // psf (live load)
+            
+            const w_total = (w_slab + SDL + LL) * tributaryWidth; // plf
+            const w_self = (b_w/12) * (h/12) * 150; // Self-weight
+            const w = (w_total + w_self);
+
+            // 3. Moment Calculations
+            const M_pos = (w * Math.pow(L_ft, 2) / 14.22 * 12); // in-lb
+            const M_neg = (w * Math.pow(L_ft, 2) / 8 * 12); // in-lb
+
+            // 4. Reinforcement Calculations
+            const d = h - 2.5; // Effective depth (2.5" cover)
+            const φ = 0.9; // Strength reduction factor
+
+            // Positive moment (T-beam)
+            const b_eff = Math.min(L/4, 16*h_f + b_w, tributaryWidth*12);
+            const A_s_pos = calculateAsTBeam(M_pos, f_c, f_y, b_eff, h_f, d, φ);
+
+            // Negative moment (rectangular)
+            const A_s_neg = calculateAsRectangular(M_neg, f_c, f_y, b_w, d, φ);
+
+            // Display results
+            document.getElementById('result').innerHTML = `
+                <h3>Design Results</h3>
+                <p><strong>Beam Dimensions:</strong></p>
+                <ul>
+                    <li>Total Depth (h): ${h}"</li>
+                    <li>Web Width (b<sub>w</sub>): ${b_w}"</li>
+                    <li>Effective Flange Width: ${b_eff.toFixed(1)}"</li>
+                </ul>
+                
+                <p><strong>Required Reinforcement:</strong></p>
+                <ul>
+                    <li>Positive Moment (Mid-span): ${A_s_pos.toFixed(2)} in²</li>
+                    <li>Negative Moment (Support): ${A_s_neg.toFixed(2)} in²</li>
+                </ul>
+
+                <p><strong>Suggested Reinforcement:</strong></p>
+                <ul>
+                    <li>Bottom Steel: ${Math.ceil(A_s_pos/0.44)}-#6 bars</li>
+                    <li>Top Steel: ${Math.ceil(A_s_neg/0.60)}-#7 bars</li>
+                    <li>Stirrups: #3 @ 8" spacing</li>
+                </ul>
+            `;
+
+            drawBeamReinforcement(A_s_pos.toFixed(2), A_s_neg.toFixed(2));
+        }
+
+        function calculateAsTBeam(Mu, f_c, f_y, b_eff, h_f, d, φ) {
+            // T-beam analysis with actual f'c integration
+            const beta1 = f_c <= 4000 ? 0.85 : Math.max(0.65, 0.85 - 0.05*(f_c-4000)/1000);
+            const C_flange = 0.85 * f_c * b_eff * h_f;
+            const Mn_flange = C_flange * (d - h_f/2);
+
+            if (Mu/φ <= Mn_flange) {
+                // Compression block within flange
+                const rho = (0.85 * f_c / f_y) * (1 - Math.sqrt(1 - (2 * Mu)/(φ * 0.85 * f_c * b_eff * d*d)));
+                return Math.max(rho * b_eff * d, 0.0033 * b_w * d);
+            }
+            
+            // Compression block extends into web (simplified)
+            const M_web = Mu/φ - Mn_flange;
+            const a_web = d - Math.sqrt(d*d - (2*M_web)/(0.85*f_c*b_w));
+            return (C_flange + 0.85*f_c*b_w*a_web)/f_y;
+        }
+
+        function calculateAsRectangular(Mu, f_c, f_y, b_w, d, φ) {
+            // Rectangular section analysis
+            const beta1 = f_c <= 4000 ? 0.85 : Math.max(0.65, 0.85 - 0.05*(f_c-4000)/1000);
+            const Rn = Mu / (φ * b_w * d * d);
+            const rho = (0.85 * f_c / f_y) * (1 - Math.sqrt(1 - (2 * Rn)/(0.85 * f_c)));
+            return Math.max(rho * b_w * d, 0.0033 * b_w * d);
+        }
+
+        function drawBeamReinforcement(A_s_pos, A_s_neg) {
+            const canvas = document.getElementById("beamCanvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = 500;
+            canvas.height = 150;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw beam outline
+            ctx.strokeStyle = "#333";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(50, 50, 400, 50);
+
+            // Draw reinforcement
+            ctx.fillStyle = "red";
+            // Bottom reinforcement (positive moment)
+            ctx.beginPath();
+            ctx.arc(250, 95, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText(`${A_s_pos} in²`, 235, 115);
+
+            // Top reinforcement (negative moment)
+            ctx.fillStyle = "blue";
+            ctx.beginPath();
+            ctx.arc(100, 55, 5, 0, Math.PI * 2);
+            ctx.arc(400, 55, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText(`${A_s_neg} in²`, 80, 40);
+            ctx.fillText(`${A_s_neg} in²`, 380, 40);
+
+            // Draw stirrups
+            ctx.strokeStyle = "green";
+            for(let x = 60; x < 440; x += 40) {
+                ctx.strokeRect(x, 60, 20, 30);
+            }
+        }
+    </script>
+</body>
+</html>
