@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T-Beam Design Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .container {
+            max-width: 90%;
+            width: 500px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .input-group {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        label {
+            font-size: 14px;
+            flex: 1;
+        }
+        input {
+            flex: 1;
+            padding: 5px;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background: #eef;
+            font-size: 14px;
+            border-radius: 5px;
+        }
+        #canvasContainer {
+            text-align: center;
+            margin-top: 20px;
+            width: 100%;
+        }
+        canvas {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>T-Beam Design Calculator</h2>
+        
+        <div class="input-group">
+            <label>Span Length (ft):</label>
+            <input type="number" id="spanLength" value="20" step="1">
+        </div>
+        <div class="input-group">
+            <label>Slab Area (sq.ft):</label>
+            <input type="number" id="slabArea" value="300" step="10">
+        </div>
+        <div class="input-group">
+            <label>Slab Thickness (in):</label>
+            <input type="number" id="slabThickness" value="6" step="0.5">
+        </div>
+        <div class="input-group">
+            <label>Concrete Strength f'c (psi):</label>
+            <input type="number" id="f_c" value="3000" step="100">
+        </div>
+        <div class="input-group">
+            <label>Steel Yield Strength fy (psi):</label>
+            <input type="number" id="f_y" value="60000" step="1000">
+        </div>
+
+        <button onclick="calculate()">Calculate</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <div id="canvasContainer">
+        <h3>Beam Reinforcement Diagram</h3>
+        <canvas id="beamCanvas"></canvas>
+    </div>
+
+    <script>
+        function calculate() {
+            const L_ft = parseFloat(document.getElementById('spanLength').value);
+            const L = L_ft * 12;
+            const slabArea = parseFloat(document.getElementById('slabArea').value);
+            const h_f = parseFloat(document.getElementById('slabThickness').value);
+            const f_c = parseFloat(document.getElementById('f_c').value);
+            const f_y = parseFloat(document.getElementById('f_y').value);
+
+            const h_min = L / 21;
+            const h = Math.ceil(h_min);
+            const b_w = Math.max(h / 2, 12);
+
+            const tributaryWidth = slabArea / (2 * L_ft);
+            const w_slab = (h_f / 12) * 150;
+            const SDL = 20;
+            const LL = 50;
+
+            const w_total = (w_slab + SDL + LL) * tributaryWidth;
+            const w_self = (b_w / 12) * (h / 12) * 150;
+            const w = (w_total + w_self).toFixed(2);
+
+            const M_pos = (w * Math.pow(L_ft, 2) / 14.22 * 12).toFixed(0);
+            const M_neg = (w * Math.pow(L_ft, 2) / 8 * 12).toFixed(0);
+
+            const d = h - 1.5 - 0.375 - 0.375;
+            const b_eff = Math.min(L / 4, 16 * h_f + b_w, tributaryWidth * 12);
+            const A_s_pos = (M_pos / (0.9 * f_y * (d - h_f / 2))).toFixed(2);
+            const A_s_neg = (M_neg / (0.9 * f_y * 0.9 * d)).toFixed(2);
+
+            document.getElementById('result').innerHTML = `
+                <h3>Design Results</h3>
+                <p><strong>Beam Dimensions:</strong></p>
+                <ul>
+                    <li>Total Depth (h): ${h}"</li>
+                    <li>Web Width (b<sub>w</sub>): ${b_w}"</li>
+                </ul>
+                
+                <p><strong>Required Reinforcement:</strong></p>
+                <ul>
+                    <li>Positive Moment (Mid-span): ${A_s_pos} in² (T-beam with b<sub>eff</sub> = ${b_eff.toFixed(1)}")</li>
+                    <li>Negative Moment (Support): ${A_s_neg} in²</li>
+                </ul>
+            `;
+
+            drawBeamReinforcement(A_s_pos, A_s_neg);
+        }
+
+        function drawBeamReinforcement(A_s_pos, A_s_neg) {
+            const canvas = document.getElementById("beamCanvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = 500;
+            canvas.height = 150;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 3;
+
+            ctx.beginPath();
+            ctx.moveTo(50, 75);
+            ctx.lineTo(450, 75);
+            ctx.stroke();
+
+            ctx.fillStyle = "red";
+            ctx.fillRect(240, 85, 20, 20);
+            ctx.fillText(`A_s = ${A_s_pos} in²`, 210, 120);
+
+            ctx.fillStyle = "blue";
+            ctx.fillRect(50, 55, 20, 20);
+            ctx.fillRect(430, 55, 20, 20);
+            ctx.fillText(`A_s = ${A_s_neg} in²`, 20, 40);
+            ctx.fillText(`A_s = ${A_s_neg} in²`, 400, 40);
+        }
+    </script>
+</body>
+</html>
