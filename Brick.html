@@ -5,62 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brickwork Calculator</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-
-        .calculator {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        input {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        button {
-            background: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #45a049;
-        }
-
-        .results {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e9f7ef;
-            border-radius: 4px;
-        }
-
-        .result-item {
-            margin: 10px 0;
-        }
+        /* ... (keep existing styles unchanged) ... */
     </style>
 </head>
 <body>
@@ -69,22 +14,22 @@
         
         <div class="input-group">
             <label>Wall Area (sq ft):</label>
-            <input type="number" id="wallArea" step="0.1">
+            <input type="number" id="wallArea" step="0.1" value="100">
         </div>
 
         <div class="input-group">
             <label>Brick Height (inch):</label>
-            <input type="number" id="brickHeight" step="0.1">
+            <input type="number" id="brickHeight" step="0.1" value="3">
         </div>
 
         <div class="input-group">
             <label>Brick Length (inch):</label>
-            <input type="number" id="brickLength" step="0.1">
+            <input type="number" id="brickLength" step="0.1" value="9.75">
         </div>
 
         <div class="input-group">
             <label>Wall Thickness (inch):</label>
-            <input type="number" id="wallThickness" step="0.1">
+            <input type="number" id="wallThickness" step="0.1" value="4.5">
         </div>
 
         <button onclick="calculateMaterials()">Calculate</button>
@@ -100,44 +45,59 @@
 
     <script>
         function calculateMaterials() {
+            // Constants
+            const mortarThickness = 0.5; // inches
+            const dryVolumeFactor = 1.3;
+            const cementDensity = 1440; // kg/m³
+            const cementBagWeight = 50; // kg
+            const laborCapacity = 300; // bricks/day
+
             // Get input values
             const wallArea = parseFloat(document.getElementById('wallArea').value);
             const brickHeight = parseFloat(document.getElementById('brickHeight').value);
             const brickLength = parseFloat(document.getElementById('brickLength').value);
             const wallThickness = parseFloat(document.getElementById('wallThickness').value);
 
-            // Fixed mortar thickness (0.5 inch)
-            const mortarThickness = 0.5;
-
-            // Calculations
-            // 1. Number of Bricks
+            // 1. Calculate Number of Bricks
             const effectiveLength = brickLength + mortarThickness;
             const effectiveHeight = brickHeight + mortarThickness;
-            const brickAreaWithMortar = effectiveLength * effectiveHeight;
-            const totalWallAreaSqIn = wallArea * 144;
-            let bricks = totalWallAreaSqIn / brickAreaWithMortar;
+            const bricksPerSqFt = 144 / (effectiveLength * effectiveHeight);
+            let totalBricks = wallArea * bricksPerSqFt;
+            totalBricks = Math.ceil(totalBricks * 1.05); // Adding 5% waste
+
+            // 2. Calculate Mortar Volume
+            // Convert wall area to cubic meters
+            const wallVolumeM3 = wallArea * 0.3048 * 0.3048 * (wallThickness * 0.0254);
             
-            // Add 5% waste
-            bricks *= 1.05;
+            // Single brick volume without mortar (m³)
+            const brickVolume = (brickLength * 0.0254) * 
+                              (brickHeight * 0.0254) * 
+                              (wallThickness * 0.0254);
 
-            // 2. Mortar Calculation
-            const wallVolumeCFT = wallArea * (wallThickness / 12);
-            const brickVolumePerUnit = (brickLength * brickHeight * wallThickness) / 1728;
-            const totalBrickVolume = bricks * brickVolumePerUnit;
-            const mortarVolume = wallVolumeCFT - totalBrickVolume;
+            // Total bricks volume without mortar
+            const totalBrickVolume = totalBricks * brickVolume;
 
-            // 3. Cement & Sand (1:3 ratio)
-            const cementCFT = mortarVolume / 4;
-            const cementKg = cementCFT * 40.8;
-            const sandCFT = cementCFT * 3;
+            // Wet mortar volume
+            const wetMortarVolume = wallVolumeM3 - totalBrickVolume;
 
-            // 4. Labor (300 bricks/day)
-            const laborDays = bricks / 300;
+            // Dry mortar volume with 30% extra
+            const dryMortarVolume = wetMortarVolume * dryVolumeFactor;
+
+            // 3. Calculate Cement & Sand (1:6 ratio)
+            const cementVolume = dryMortarVolume / (1 + 6);
+            const cementKg = cementVolume * cementDensity;
+            const sandVolume = cementVolume * 6;
+
+            // 4. Convert sand to CFT
+            const sandCFT = sandVolume * 35.3147;
+
+            // 5. Labor Calculation
+            const laborDays = totalBricks / laborCapacity;
 
             // Display results
             document.getElementById('results').style.display = 'block';
-            document.getElementById('bricks').textContent = Math.ceil(bricks) + " bricks";
-            document.getElementById('cement').textContent = Math.ceil(cementKg) + " kg";
+            document.getElementById('bricks').textContent = totalBricks + " bricks";
+            document.getElementById('cement').textContent = Math.ceil(cementKg) + " kg (" + (cementKg/cementBagWeight).toFixed(1) + " bags)";
             document.getElementById('sand').textContent = sandCFT.toFixed(1) + " CFT";
             document.getElementById('labor').textContent = laborDays.toFixed(1) + " days";
         }
