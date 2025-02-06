@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>T-Beam Design Calculator</title>
+    <style>
+        .container { max-width: 600px; margin: 20px; padding: 20px; border: 1px solid #ccc; }
+        .input-group { margin: 15px 0; }
+        label { display: inline-block; width: 200px; }
+        input { width: 100px; padding: 5px; }
+        .result { margin-top: 20px; padding: 15px; background: #f0f0f0; }
+        .note { color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>T-Beam Design Calculator</h2>
+        
+        <div class="input-group">
+            <label>Span Length (ft):</label>
+            <input type="number" id="spanLength" value="20" step="1">
+        </div>
+        
+        <div class="input-group">
+            <label>Slab Area (sq.ft):</label>
+            <input type="number" id="slabArea" value="300" step="10">
+        </div>
+
+        <div class="input-group">
+            <label>Slab Thickness (in):</label>
+            <input type="number" id="slabThickness" value="6" step="0.5">
+        </div>
+
+        <div class="input-group">
+            <label>Concrete Strength f'c (psi):</label>
+            <input type="number" id="f_c" value="3000" step="100">
+        </div>
+
+        <div class="input-group">
+            <label>Steel Yield Strength fy (psi):</label>
+            <input type="number" id="f_y" value="60000" step="1000">
+        </div>
+
+        <button onclick="calculate()" style="margin: 15px 0; padding: 8px 20px;">Calculate</button>
+
+        <div class="result" id="result"></div>
+        <div class="note">Note: This is a simplified design tool. Actual engineering calculations require additional checks per ACI 318.</div>
+    </div>
+
+    <script>
+        function calculate() {
+            // Input values
+            const L_ft = parseFloat(document.getElementById('spanLength').value);
+            const L = L_ft * 12; // Convert to inches
+            const slabArea = parseFloat(document.getElementById('slabArea').value);
+            const h_f = parseFloat(document.getElementById('slabThickness').value);
+            const f_c = parseFloat(document.getElementById('f_c').value);
+            const f_y = parseFloat(document.getElementById('f_y').value);
+
+            // 1. Calculate Beam Dimensions (simplified ACI approach)
+            const h_min = L / 21; // Minimum depth per ACI 318
+            const h = Math.ceil(h_min); // Round up to nearest inch
+            const b_w = Math.max(h/2, 12); // Web width (minimum 12")
+
+            // 2. Load Calculations
+            const tributaryWidth = slabArea / (2 * L_ft); // ft
+            const w_slab = (h_f/12) * 150; // psf
+            const SDL = 20; // psf (superimposed dead load)
+            const LL = 50; // psf (live load)
+            
+            // Total load calculations
+            const w_total = (w_slab + SDL + LL) * tributaryWidth; // plf
+            const w_self = (b_w/12) * (h/12) * 150; // Self-weight
+            const w = (w_total + w_self).toFixed(2);
+
+            // 3. Moment Calculations (ACI moment coefficients)
+            const M_pos = (w * Math.pow(L_ft, 2) / 14.22 * 12).toFixed(0); // in-lb
+            const M_neg = (w * Math.pow(L_ft, 2) / 8 * 12).toFixed(0); // in-lb
+
+            // 4. Reinforcement Calculations
+            const d = h - 1.5 - 0.375 - 0.375; // Effective depth (1.5" cover + stirrup + bar)
+            
+            // Positive moment (T-beam)
+            const b_eff = Math.min(L/4, 16*h_f + b_w, tributaryWidth*12); // Effective flange width
+            const A_s_pos = (M_pos / (0.9*f_y*(d - h_f/2))).toFixed(2);
+            
+            // Negative moment (rectangular)
+            const A_s_neg = (M_neg / (0.9*f_y*0.9*d)).toFixed(2); // Simplified assumption
+
+            // Display results
+            document.getElementById('result').innerHTML = `
+                <h3>Design Results</h3>
+                <p><strong>Beam Dimensions:</strong></p>
+                <ul>
+                    <li>Total Depth (h): ${h}"</li>
+                    <li>Web Width (b<sub>w</sub>): ${b_w}"</li>
+                </ul>
+                
+                <p><strong>Required Reinforcement:</strong></p>
+                <ul>
+                    <li>Positive Moment (Mid-span): ${A_s_pos} in² (T-beam with b<sub>eff</sub> = ${b_eff.toFixed(1)}")</li>
+                    <li>Negative Moment (Support): ${A_s_neg} in²</li>
+                </ul>
+
+                <p><strong>Typical Reinforcement:</strong></p>
+                <ul>
+                    <li>Positive: ${Math.ceil(A_s_pos/0.44)}-#6 bars</li>
+                    <li>Negative: ${Math.ceil(A_s_neg/0.60)}-#7 bars</li>
+                    <li>Shear: #3 stirrups @ 8" spacing</li>
+                </ul>
+            `;
+        }
+    </script>
+</body>
+</html>
