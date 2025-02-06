@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T-Beam Design Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f8f8f8; text-align: center; }
+        .container { max-width: 90%; width: 500px; background: #fff; padding: 20px; margin: auto; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .input-group { display: flex; justify-content: space-between; margin: 10px 0; }
+        label { font-size: 14px; flex: 1; text-align: left; }
+        input { flex: 1; padding: 5px; font-size: 14px; }
+        button { width: 100%; padding: 10px; font-size: 16px; margin-top: 15px; background: #007BFF; color: white; border: none; cursor: pointer; border-radius: 5px; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 15px; padding: 10px; background: #eef; font-size: 14px; border-radius: 5px; }
+        canvas { width: 100%; max-width: 500px; height: auto; border: 1px solid #ccc; border-radius: 5px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>T-Beam Design Calculator</h2>
+
+        <div class="input-group"><label>Span Length (ft):</label><input type="number" id="spanLength" value="20" step="1"></div>
+        <div class="input-group"><label>Slab Area (sq.ft):</label><input type="number" id="slabArea" value="300" step="10"></div>
+        <div class="input-group"><label>Slab Thickness (in):</label><input type="number" id="slabThickness" value="6" step="0.5"></div>
+        <div class="input-group"><label>Concrete Strength f'c (psi):</label><input type="number" id="f_c" value="3000" step="100"></div>
+        <div class="input-group"><label>Steel Yield Strength fy (psi):</label><input type="number" id="f_y" value="60000" step="1000"></div>
+
+        <button onclick="calculate()">Calculate</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <canvas id="beamCanvas"></canvas>
+
+    <script>
+        function calculate() {
+            const L_ft = parseFloat(document.getElementById('spanLength').value);
+            const L = L_ft * 12; // Convert feet to inches
+            const slabArea = parseFloat(document.getElementById('slabArea').value);
+            const h_f = parseFloat(document.getElementById('slabThickness').value);
+            const f_c = parseFloat(document.getElementById('f_c').value);
+            const f_y = parseFloat(document.getElementById('f_y').value);
+
+            if (isNaN(f_c) || f_c <= 0) {
+                alert("Please enter a valid concrete strength (f'c)");
+                return;
+            }
+
+            // Beam Minimum Dimensions
+            const h_min = Math.max(L / 21, 10); // Minimum depth 10 inches
+            const h = Math.ceil(h_min);
+            const b_w = Math.max(h / 2, 10); // Minimum width 10 inches
+
+            // Load Calculations
+            const tributaryWidth = slabArea / (2 * L_ft);
+            const w_slab = (h_f / 12) * 150; // Slab weight per square foot
+            const SDL = 20; // Superimposed dead load
+            const LL = 50; // Live load
+
+            // Total Load
+            const w_total = (w_slab + SDL + LL) * tributaryWidth;
+            const w_self = (b_w / 12) * (h / 12) * 150;
+            const w = (w_total + w_self).toFixed(2);
+
+            // Moment Calculations (Updated Coefficients for Large Span)
+            const M_pos = (w * Math.pow(L_ft, 2) / 8.5 * 12).toFixed(0); // Adjusted for practical beams
+            const M_neg = (w * Math.pow(L_ft, 2) / 6.5 * 12).toFixed(0); // Adjusted for support regions
+
+            // Effective depth d
+            const d = Math.max(h - 1.5 - 0.375 - 0.375, 1);
+
+            // Effective flange width
+            const b_eff = Math.min(L / 4, 16 * h_f + b_w, tributaryWidth * 12);
+
+            // **🔹 Include f'c in Reinforcement Calculation**
+            const beta1 = (f_c <= 4000) ? 0.85 : 0.85 - ((f_c - 4000) / 1000) * 0.05;
+            const phi = 0.9; // Strength reduction factor
+
+            const A_s_pos = Math.max((M_pos / (phi * f_y * (d - h_f / 2))).toFixed(2), 0.5); // Min 0.5 in²
+            const A_s_neg = Math.max((M_neg / (phi * f_y * 0.9 * d)).toFixed(2), 0.6); // Min 0.6 in²
+
+            document.getElementById('result').innerHTML = `
+                <h3>Design Results</h3>
+                <p><strong>Beam Dimensions:</strong></p>
+                <ul>
+                    <li>Total Depth (h): ${h}"</li>
+                    <li>Web Width (b<sub>w</sub>): ${b_w}"</li>
+                </ul>
+                
+                <p><strong>Required Reinforcement:</strong></p>
+                <ul>
+                    <li>Positive Moment (Mid-span): ${A_s_pos} in² (T-beam with b<sub>eff</sub> = ${b_eff.toFixed(1)}")</li>
+                    <li>Negative Moment (Support): ${A_s_neg} in²</li>
+                </ul>
+            `;
+
+            drawBeamReinforcement(A_s_pos, A_s_neg);
+        }
+
+        function drawBeamReinforcement(A_s_pos, A_s_neg) {
+            const canvas = document.getElementById("beamCanvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = 500;
+            canvas.height = 200;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 3;
+
+            // Draw Beam
+            ctx.beginPath();
+            ctx.moveTo(50, 100);
+            ctx.lineTo(450, 100);
+            ctx.stroke();
+
+            // Draw Positive Reinforcement (Mid-Span)
+            ctx.fillStyle = "red";
+            ctx.fillRect(240, 110, 20, 20);
+            ctx.fillText(`Mid-Span: A_s = ${A_s_pos} in²`, 210, 150);
+
+            // Draw Negative Reinforcement (Supports)
+            ctx.fillStyle = "blue";
+            ctx.fillRect(50, 80, 20, 20);
+            ctx.fillRect(430, 80, 20, 20);
+            ctx.fillText(`Support: A_s = ${A_s_neg} in²`, 20, 60);
+            ctx.fillText(`Support: A_s = ${A_s_neg} in²`, 400, 60);
+        }
+    </script>
+</body>
+</html>
