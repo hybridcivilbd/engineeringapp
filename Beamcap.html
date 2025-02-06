@@ -1,19 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>T-Beam Design Calculator</title>
     <style>
-        .container { max-width: 600px; margin: 20px; padding: 20px; border: 1px solid #ccc; }
-        .input-group { margin: 15px 0; }
-        label { display: inline-block; width: 200px; }
-        input { width: 100px; padding: 5px; }
-        .result { margin-top: 20px; padding: 15px; background: #f0f0f0; }
-        .note { color: #666; font-size: 0.9em; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            margin: 10px 0;
+        }
+        label {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            color: #fff;
+            background: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 5px;
+        }
+        .note {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                width: 90%;
+                margin: 10px auto;
+                padding: 15px;
+            }
+            button {
+                font-size: 16px;
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <h2>T-Beam Design Calculator</h2>
+        <h2 style="text-align: center;">T-Beam Design Calculator</h2>
         
         <div class="input-group">
             <label>Span Length (ft):</label>
@@ -40,7 +106,7 @@
             <input type="number" id="f_y" value="60000" step="1000">
         </div>
 
-        <button onclick="calculate()" style="margin: 15px 0; padding: 8px 20px;">Calculate</button>
+        <button onclick="calculate()">Calculate</button>
 
         <div class="result" id="result"></div>
         <div class="note">Note: This is a simplified design tool. Actual engineering calculations require additional checks per ACI 318.</div>
@@ -48,7 +114,6 @@
 
     <script>
         function calculate() {
-            // Input values
             const L_ft = parseFloat(document.getElementById('spanLength').value);
             const L = L_ft * 12; // Convert to inches
             const slabArea = parseFloat(document.getElementById('slabArea').value);
@@ -56,37 +121,28 @@
             const f_c = parseFloat(document.getElementById('f_c').value);
             const f_y = parseFloat(document.getElementById('f_y').value);
 
-            // 1. Calculate Beam Dimensions (simplified ACI approach)
             const h_min = L / 21; // Minimum depth per ACI 318
             const h = Math.ceil(h_min); // Round up to nearest inch
             const b_w = Math.max(h/2, 12); // Web width (minimum 12")
 
-            // 2. Load Calculations
             const tributaryWidth = slabArea / (2 * L_ft); // ft
             const w_slab = (h_f/12) * 150; // psf
             const SDL = 20; // psf (superimposed dead load)
             const LL = 50; // psf (live load)
-            
-            // Total load calculations
+
             const w_total = (w_slab + SDL + LL) * tributaryWidth; // plf
             const w_self = (b_w/12) * (h/12) * 150; // Self-weight
             const w = (w_total + w_self).toFixed(2);
 
-            // 3. Moment Calculations (ACI moment coefficients)
             const M_pos = (w * Math.pow(L_ft, 2) / 14.22 * 12).toFixed(0); // in-lb
             const M_neg = (w * Math.pow(L_ft, 2) / 8 * 12).toFixed(0); // in-lb
 
-            // 4. Reinforcement Calculations
-            const d = h - 1.5 - 0.375 - 0.375; // Effective depth (1.5" cover + stirrup + bar)
+            const d = h - 1.5 - 0.375 - 0.375; // Effective depth
             
-            // Positive moment (T-beam)
             const b_eff = Math.min(L/4, 16*h_f + b_w, tributaryWidth*12); // Effective flange width
             const A_s_pos = (M_pos / (0.9*f_y*(d - h_f/2))).toFixed(2);
-            
-            // Negative moment (rectangular)
-            const A_s_neg = (M_neg / (0.9*f_y*0.9*d)).toFixed(2); // Simplified assumption
+            const A_s_neg = (M_neg / (0.9*f_y*0.9*d)).toFixed(2);
 
-            // Display results
             document.getElementById('result').innerHTML = `
                 <h3>Design Results</h3>
                 <p><strong>Beam Dimensions:</strong></p>
@@ -110,5 +166,6 @@
             `;
         }
     </script>
+
 </body>
 </html>
