@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reinforced Concrete Column Design</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Reinforced Concrete Column Design (ACI 318-19)</h1>
+        <div class="input-group">
+            <label for="load">Axial Load (Ton):</label>
+            <input type="number" id="load" placeholder="Enter axial load in tons">
+        </div>
+        <div class="input-group">
+            <label for="fc">Concrete Strength (MPa):</label>
+            <input type="number" id="fc" placeholder="Enter fc in MPa">
+        </div>
+        <div class="input-group">
+            <label for="fy">Steel Yield Strength (MPa):</label>
+            <input type="number" id="fy" placeholder="Enter fy in MPa">
+        </div>
+        <button onclick="designColumn()">Design Column</button>
+        <div class="output" id="output">
+            <h2>Design Output</h2>
+            <p>Column Size: <span id="columnSize"></span></p>
+            <p>Vertical Reinforcement: <span id="verticalReinforcement"></span></p>
+            <p>Stirrup Spacing (Edge): <span id="stirrupEdge"></span></p>
+            <p>Stirrup Spacing (Middle): <span id="stirrupMiddle"></span></p>
+        </div>
+    </div>
+
+    <script>
+        function designColumn() {
+            // Input values
+            const load = parseFloat(document.getElementById('load').value) * 9.80665; // Convert tons to kN
+            const fc = parseFloat(document.getElementById('fc').value);
+            const fy = parseFloat(document.getElementById('fy').value);
+
+            // Constants
+            const phi = 0.65; // Strength reduction factor for compression members
+            const rho = 0.02; // Reinforcement ratio (2%, typical for columns)
+
+            // Calculate required column area (Ag)
+            const Ag = (load * 1000) / (phi * (0.85 * fc + (fy - 0.85 * fc) * rho)); // in mm²
+            const side = Math.sqrt(Ag); // Side length in mm
+            const columnSize = Math.ceil(side / 50) * 50; // Round up to nearest 50 mm
+
+            // Calculate vertical reinforcement
+            const Ast = rho * Ag; // Total reinforcement area in mm²
+            const barSize = 16; // 16 mm bars
+            const barArea = Math.PI * Math.pow(barSize / 2, 2); // Area of one bar in mm²
+            const numBars = Math.ceil(Ast / barArea); // Number of bars
+
+            // Stirrup spacing
+            const stirrupEdge = Math.min(columnSize / 2, 16 * barSize, 300); // ACI 318-19 requirements
+            const stirrupMiddle = Math.min(columnSize, 24 * barSize, 300);
+
+            // Display results
+            document.getElementById('columnSize').textContent = `${columnSize} mm x ${columnSize} mm`;
+            document.getElementById('verticalReinforcement').textContent = `${numBars} nos ${barSize} mm steel`;
+            document.getElementById('stirrupEdge').textContent = `${stirrupEdge} mm`;
+            document.getElementById('stirrupMiddle').textContent = `${stirrupMiddle} mm`;
+        }
+    </script>
+</body>
+</html>
