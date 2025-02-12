@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T-Beam Design Calculator (ACI 318)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 20px;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1, h2 {
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #34495e;
+            font-weight: bold;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+        }
+
+        .result-item {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: white;
+            border-radius: 4px;
+        }
+
+        .warning {
+            color: #e74c3c;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>T-Beam Design Calculator (ACI 318)</h1>
+
+        <form id="tbeam-form">
+            <div class="input-group">
+                <label for="span-length">Span Length (ft):</label>
+                <input type="number" id="span-length" min="1" step="0.1" required>
+            </div>
+
+            <div class="input-group">
+                <label for="beam-depth">Total Beam Depth (in):</label>
+                <input type="number" id="beam-depth" min="8" step="0.5" required>
+            </div>
+
+            <div class="input-group">
+                <label for="beam-width">Web Width (in):</label>
+                <input type="number" id="beam-width" min="6" step="0.5" required>
+            </div>
+
+            <div class="input-group">
+                <label for="live-load">Live Load (psf):</label>
+                <input type="number" id="live-load" min="20" step="10" required>
+            </div>
+
+            <div class="input-group">
+                <label for="slab-thickness">Slab Thickness (in):</label>
+                <input type="number" id="slab-thickness" min="4" step="0.5" required>
+            </div>
+
+            <div class="input-group">
+                <label for="trib-width">Tributary Width (ft):</label>
+                <input type="number" id="trib-width" min="2" step="0.5" required>
+            </div>
+
+            <button type="button" onclick="calculateDesign()">Calculate Design</button>
+        </form>
+
+        <div class="results">
+            <h2>Design Results</h2>
+            <div class="result-item">
+                <strong>Factored Moment (Mu):</strong> <span id="moment">-</span> kip-ft
+            </div>
+            <div class="result-item">
+                <strong>Factored Shear (Vu):</strong> <span id="shear-force">-</span> kips
+            </div>
+            <div class="result-item">
+                <strong>Required As (bottom):</strong> <span id="bottom-bar-area">-</span> in²
+            </div>
+            <div class="result-item">
+                <strong>Stirrup Spacing:</strong> <span id="stirrup-spacing">-</span> in
+            </div>
+            <div class="warning">*Note: This calculator assumes f'_c = 4 ksi and f_y = 60 ksi</div>
+        </div>
+    </div>
+
+    <script>
+        function calculateDesign() {
+            // Input validation
+            const inputs = Array.from(document.querySelectorAll('input[type="number"]'));
+            if (inputs.some(input => !input.value || input.value <= 0)) {
+                alert("Please fill all fields with positive values");
+                return;
+            }
+
+            // Material properties
+            const f_c = 3000;    // psi
+            const f_y = 60000;  // psi
+            const phi_b = 0.9;   // Flexure reduction factor
+            const phi_v = 0.75;  // Shear reduction factor
+
+            // Get input values
+            const L = parseFloat(document.getElementById('span-length').value);    // ft
+            const h = parseFloat(document.getElementById('beam-depth').value);    // in
+            const b_w = parseFloat(document.getElementById('beam-width').value);  // in
+            const LL = parseFloat(document.getElementById('live-load').value);     // psf
+            const h_f = parseFloat(document.getElementById('slab-thickness').value); // in
+            const w_trib = parseFloat(document.getElementById('trib-width').value);  // ft
+
+            // Convert units
+            const L_in = L * 12;  // span in inches
+            const d = h - 2.5;     // assuming 2.5" cover
+
+            // Load calculations
+            const DL = 150 * h_f/12 * w_trib;  // slab self-weight (plf)
+            const w_u = 1.2*DL + 1.6*LL*w_trib; // factored load (plf)
+            
+            // Moment calculation (continuous beam)
+            const Mu = w_u * L**2 / 10;  // kip-ft (conservative for 2-span)
+
+            // Shear calculation
+            const Vu = 1.15 * w_u * L / 2;  // kips (1.15 factor for continuous)
+
+            // Reinforcement calculation
+            const Rn = Mu * 12000 / (phi_b * b_w * d**2);  // psi
+            const rho = (0.85*f_c/f_y)*(1 - Math.sqrt(1 - 2*Rn/(0.85*f_c)));
+            const As = Math.max(rho * b_w * d, 3*Math.sqrt(f_c)/f_y * b_w * d);
+
+            // Shear reinforcement
+            const Vc = 2 * Math.sqrt(f_c) * b_w * d / 1000;  // kips
+            const Vs = (Vu/phi_v - Vc);
+            const s_max = Math.min(d/2, 24);
+            let s = s_max;
+            
+            if (Vs > 0) {
+                const Av = 0.22;  // #3 stirrups (2 legs)
+                s = Av * f_y * d / (Vs * 1000);
+                s = Math.min(Math.max(s, 6), s_max);
+            }
+
+            // Display results
+            document.getElementById('moment').textContent = Mu.toFixed(1);
+            document.getElementById('shear-force').textContent = Vu.toFixed(1);
+            document.getElementById('bottom-bar-area').textContent = As.toFixed(2);
+            document.getElementById('stirrup-spacing').textContent = 
+                Vs <= 0 ? "Minimum required" : s.toFixed(1);
+        }
+    </script>
+</body>
+</html>
