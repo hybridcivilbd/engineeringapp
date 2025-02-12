@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T-Beam Design Calculator (Without Top Bars)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .results p {
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>T-Beam Design Calculator (Without Top Bars)</h1>
+
+        <form id="tbeam-form">
+            <div class="input-group">
+                <label for="span-length">Span Length (ft):</label>
+                <input type="number" id="span-length" required>
+            </div>
+
+            <div class="input-group">
+                <label for="beam-depth">Beam Depth (in):</label>
+                <input type="number" id="beam-depth" required>
+            </div>
+
+            <div class="input-group">
+                <label for="beam-width">Beam Width (in):</label>
+                <input type="number" id="beam-width" required>
+            </div>
+
+            <div class="input-group">
+                <label for="live-load">Live Load (psf):</label>
+                <input type="number" id="live-load" required>
+            </div>
+
+            <div class="input-group">
+                <label for="slab-thickness">Slab Thickness (in):</label>
+                <input type="number" id="slab-thickness" required>
+            </div>
+
+            <div class="input-group">
+                <label for="slab-area">Slab Area (sqft):</label>
+                <input type="number" id="slab-area" required>
+            </div>
+
+            <button type="button" onclick="calculateBeamDesign()">Calculate Design</button>
+        </form>
+
+        <div id="results" class="results">
+            <h2>Results</h2>
+            <p><strong>Moment (M):</strong> <span id="moment"></span> kip-ft</p>
+            <p><strong>Shear Force (V):</strong> <span id="shear-force"></span> kips</p>
+            <p><strong>Bottom Bar Area (A_s):</strong> <span id="bottom-bar-area"></span> in²</p>
+            <p><strong>Stirrup Spacing:</strong> <span id="stirrup-spacing"></span> inches</p>
+        </div>
+    </div>
+
+    <script>
+        function calculateBeamDesign() {
+            // Get input values
+            let spanLength = parseFloat(document.getElementById("span-length").value);
+            let beamDepth = parseFloat(document.getElementById("beam-depth").value);
+            let beamWidth = parseFloat(document.getElementById("beam-width").value);
+            let liveLoad = parseFloat(document.getElementById("live-load").value);
+            let slabThickness = parseFloat(document.getElementById("slab-thickness").value);
+            let slabArea = parseFloat(document.getElementById("slab-area").value);
+
+            // Convert slab area to square inches (assuming 1 sqft = 144 in²)
+            let slabAreaInches = slabArea * 144;
+
+            // Step 1: Calculate Moment (M)
+            let deadLoad = 20; // Assume dead load is 20 psf for simplicity (adjust as needed)
+            let totalLoad = liveLoad + deadLoad; // Total load in psf
+            let moment = (totalLoad * slabAreaInches * (spanLength * 12) ** 2) / 8 / 1000000; // Moment in kip-ft (divide by 1 million for conversion)
+
+            // Step 2: Calculate Shear Force (V)
+            let shearForce = (totalLoad * slabAreaInches * spanLength * 12) / 2 / 1000; // Shear force in kips (divide by 1000 for conversion)
+
+            // Step 3: Calculate Bottom Bar Area (A_s)
+            // Assuming yield strength of steel f_y = 60 ksi and effective depth (d) = beamDepth - slabThickness
+            let yieldStrength = 60; // ksi
+            let effectiveDepth = beamDepth - slabThickness;
+            let A_s = moment * 1000000 / (yieldStrength * effectiveDepth); // Bottom bar area in in² (multiplied by 1 million for conversion)
+
+            // Step 4: Calculate Stirrup Spacing
+            // Assuming stirrup area (A_v) = 0.2 in² and shear stress limits for stirrups
+            let stirrupArea = 0.2; // in² (a typical value for stirrup area)
+            let stirrupSpacing = (shearForce * 1000) / (stirrupArea * 60); // Stirrup spacing in inches
+
+            // Output the results
+            document.getElementById("moment").textContent = moment.toFixed(2);
+            document.getElementById("shear-force").textContent = shearForce.toFixed(2);
+            document.getElementById("bottom-bar-area").textContent = A_s.toFixed(2);
+            document.getElementById("stirrup-spacing").textContent = stirrupSpacing.toFixed(2);
+        }
+    </script>
+</body>
+</html>
