@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Column Calculators</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            margin: auto;
+            margin-bottom: 20px;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Minimum Eccentricity Calculator</h2>
+        <label for="height">Column Height (mm):</label>
+        <input type="number" id="height" placeholder="Enter column height">
+        
+        <label for="width">Column Width (mm):</label>
+        <input type="number" id="width" placeholder="Enter column width">
+        
+        <button onclick="calculateEccentricity()">Calculate</button>
+        
+        <h3>Minimum Eccentricity: <span id="result">--</span> mm</h3>
+    </div>
+    
+    <div class="container">
+        <h2>Uniaxial Column Moment Calculator</h2>
+        <label for="load">Axial Load (P) in kN:</label>
+        <input type="number" id="load" placeholder="Enter axial load">
+        
+        <label for="eccentricity">Eccentricity (e) in mm:</label>
+        <input type="number" id="eccentricity" placeholder="Enter eccentricity">
+        
+        <button onclick="calculateMoment()">Calculate</button>
+        
+        <h3>Bending Moment: <span id="momentResult">--</span> kNm</h3>
+    </div>
+
+    <div class="container">
+        <h2>Uniaxial Eccentricity Calculator</h2>
+        <label for="moment">Bending Moment (M) in kNm:</label>
+        <input type="number" id="moment" placeholder="Enter bending moment">
+        
+        <label for="uniaxialLoad">Axial Load (P) in kN:</label>
+        <input type="number" id="uniaxialLoad" placeholder="Enter axial load">
+        
+        <button onclick="calculateUniaxialEccentricity()">Calculate</button>
+        
+        <h3>Uniaxial Eccentricity: <span id="uniaxialResult">--</span> mm</h3>
+    </div>
+
+    <script>
+        function calculateEccentricity() {
+            let l = parseFloat(document.getElementById('height').value);
+            let D = parseFloat(document.getElementById('width').value);
+            
+            if (isNaN(l) || isNaN(D) || l <= 0 || D <= 0) {
+                alert("Please enter valid positive numbers.");
+                return;
+            }
+            
+            let e_min = (l / 500) + (D / 30);
+            document.getElementById('result').innerText = e_min.toFixed(2);
+        }
+
+        function calculateMoment() {
+            let P = parseFloat(document.getElementById('load').value);
+            let e = parseFloat(document.getElementById('eccentricity').value);
+            
+            if (isNaN(P) || isNaN(e) || P <= 0 || e <= 0) {
+                alert("Please enter valid positive numbers.");
+                return;
+            }
+            
+            let M = (P * e) / 1000; // Convert mm to meters for kNm output
+            document.getElementById('momentResult').innerText = M.toFixed(2);
+        }
+
+        function calculateUniaxialEccentricity() {
+            let M = parseFloat(document.getElementById('moment').value);
+            let P = parseFloat(document.getElementById('uniaxialLoad').value);
+            
+            if (isNaN(M) || isNaN(P) || M <= 0 || P <= 0) {
+                alert("Please enter valid positive numbers.");
+                return;
+            }
+            
+            let e = (M / P) * 1000; // Convert meters to mm for output
+            document.getElementById('uniaxialResult').innerText = e.toFixed(2);
+        }
+    </script>
+</body>
+</html>
