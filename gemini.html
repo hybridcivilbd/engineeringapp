@@ -1,66 +1,118 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Uniaxial Column Calculator (Simplified)</title>
-<style>
-  /* Basic styling - you'll likely want to improve this */
-  label { display: block; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uniaxial Column Calculator (Simplified)</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            box-sizing: border-box; /* Include padding and border in element's total width and height */
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            max-width: 500px; /* Limit form width on larger screens */
+            margin: 0 auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            width: 100%; /* Make button full width */
+        }
+        #results {
+            margin-top: 20px;
+            border: 1px solid #ccc; /* Add a border to the results section */
+            padding: 10px;
+        }
+        .error { /* Style for error messages */
+            color: red;
+            margin-top: 10px;
+        }
+
+        /* Basic mobile responsiveness */
+        @media (max-width: 400px) {
+            form {
+                max-width: 95%; /* Make form nearly full width on smaller screens */
+            }
+        }
+    </style>
 </head>
 <body>
 
-<h1>Uniaxial Column Calculator (Simplified)</h1>
+    <h1>Uniaxial Column Calculator (Simplified)</h1>
 
-<form id="columnForm">
-  <label for="pu">Factored Axial Load (Pu):</label>
-  <input type="number" id="pu" name="pu" required><br><br>
+    <form id="columnForm">
+        <label for="pu">Factored Axial Load (Pu) [kN]:</label>
+        <input type="number" id="pu" name="pu" required min="0"><br><br>
 
-  <label for="mu">Factored Moment (Mu):</label>
-  <input type="number" id="mu" name="mu" required><br><br>
+        <label for="mu">Factored Moment (Mu) [kNm]:</label>
+        <input type="number" id="mu" name="mu" required min="0"><br><br>
 
-  <label for="fc">Concrete Strength (f'c):</label>
-  <input type="number" id="fc" name="fc" required><br><br>
+        <label for="fc">Concrete Strength (f'c) [MPa]:</label>
+        <input type="number" id="fc" name="fc" required min="0"><br><br>
 
-  <label for="fy">Steel Yield Strength (fy):</label>
-  <input type="number" id="fy" name="fy" required><br><br>
+        <label for="fy">Steel Yield Strength (fy) [MPa]:</label>
+        <input type="number" id="fy" name="fy" required min="0"><br><br>
 
-  <label for="ag">Gross Area (Ag):</label>
-  <input type="number" id="ag" name="ag" required><br><br>
+        <label for="ag">Gross Area (Ag) [mm²]:</label>
+        <input type="number" id="ag" name="ag" required min="0"><br><br>
 
-  <button type="button" onclick="calculate()">Calculate</button>
-</form>
+        <button type="button" onclick="calculate()">Calculate</button>
+        <div id="error-message" class="error"></div>  </form>
 
-<div id="results" style="margin-top: 20px;">
-  </div>
+    <div id="results">
+    </div>
 
-<script>
-function calculate() {
-  const pu = parseFloat(document.getElementById("pu").value);
-  const mu = parseFloat(document.getElementById("mu").value);
-  const fc = parseFloat(document.getElementById("fc").value);
-  const fy = parseFloat(document.getElementById("fy").value);
-  const ag = parseFloat(document.getElementById("ag").value);
+    <script>
+        function calculate() {
+            const pu = parseFloat(document.getElementById("pu").value);
+            const mu = parseFloat(document.getElementById("mu").value);
+            const fc = parseFloat(document.getElementById("fc").value);
+            const fy = parseFloat(document.getElementById("fy").value);
+            const ag = parseFloat(document.getElementById("ag").value);
+            const errorMessage = document.getElementById("error-message");
+            errorMessage.textContent = ""; // Clear any previous error messages.
 
-  // VERY simplified calculation - this is NOT a complete or accurate design
-  // You would need to use ACI 318 equations and interaction diagrams here.
-  // This is just a placeholder to demonstrate the concept.
 
-  const eccentricity = mu / pu;
-  const steelRatio = 0.01; // Example - needs proper calculation
-  const ast = steelRatio * ag;
+            if (isNaN(pu) || isNaN(mu) || isNaN(fc) || isNaN(fy) || isNaN(ag) || pu < 0 || mu < 0 || fc < 0 || fy < 0 || ag < 0) {
+                errorMessage.textContent = "Please enter valid positive numbers for all fields.";
+                return;
+            }
 
-    // VERY simplified Pn calculation (without phi factor or other considerations)
-    const pn = 0.80 * (0.85 * fc * (ag - ast) + fy * ast);
 
-  const resultsDiv = document.getElementById("results");
-  resultsDiv.innerHTML = `
-    <p>Eccentricity: ${eccentricity.toFixed(3)}</p>
-    <p>Estimated Steel Area (Ast): ${ast.toFixed(3)}</p>
-    <p>Simplified Nominal Axial Strength (Pn): ${pn.toFixed(3)}</p>
-    <p><strong>IMPORTANT: This calculation is highly simplified and should NOT be used for actual design. Consult ACI 318 and a qualified structural engineer.</strong></p>
-  `;
-}
-</script>
+            const eccentricity = mu / pu;
+            const steelRatio = 0.01; // Example - needs proper calculation
+            const ast = steelRatio * ag;
+
+            // VERY simplified Pn calculation (without phi factor or other considerations)
+            const pn = 0.80 * (0.85 * fc * (ag - ast) + fy * ast);
+
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = `
+                <p>Eccentricity: ${eccentricity.toFixed(3)} mm</p>
+                <p>Estimated Steel Area (Ast): ${ast.toFixed(3)} mm²</p>
+                <p>Simplified Nominal Axial Strength (Pn): ${pn.toFixed(3)} kN</p>
+                <p><strong>IMPORTANT: This calculation is highly simplified and should NOT be used for actual design. Consult ACI 318 and a qualified structural engineer.</strong></p>
+            `;
+        }
+    </script>
 
 </body>
 </html>
