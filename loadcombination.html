@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load Combination Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; }
+        .container { width: 90%; max-width: 600px; margin: auto; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid black; padding: 10px; text-align: center; }
+        input { width: 100%; padding: 10px; margin: 5px 0; }
+        button { width: 100%; padding: 10px; margin-top: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        @media (max-width: 600px) {
+            th, td { font-size: 14px; padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Load Combination Calculator</h2>
+        <label>Dead Load (DL): </label>
+        <input type="number" id="deadLoad" value="0">
+        <label>Live Load (LL): </label>
+        <input type="number" id="liveLoad" value="0">
+        <label>Wind Load (WL): </label>
+        <input type="number" id="windLoad" value="0">
+        <label>Seismic Load (EQ): </label>
+        <input type="number" id="seismicLoad" value="0">
+        
+        <button onclick="calculateLoad()">Calculate</button>
+        
+        <h3>Results:</h3>
+        <table id="resultsTable">
+            <tr>
+                <th>Load Combination</th>
+                <th>Calculated Load</th>
+            </tr>
+        </table>
+    </div>
+    
+    <script>
+        const loadCombinations = [
+            "1.4*DL", "1.2*DL+1.6*LL", "1.2*DL+1.6*WL", "1.2*DL+1.6*EQ", "0.9*DL+1.6*WL", "1.2*DL+1.0*LL+0.5*WL",
+            "1.2*DL+1.0*LL+0.5*EQ", "1.6*DL", "1.6*DL+1.6*LL", "1.6*DL+1.6*WL", "1.6*DL+1.6*EQ", "0.75*DL+0.75*LL+0.75*WL",
+            "0.75*DL+0.75*LL+0.75*EQ", "0.6*DL+1.6*WL", "0.6*DL+1.6*EQ", "1.2*DL+1.0*LL", "1.2*DL+1.0*WL", "1.2*DL+1.0*EQ",
+            "0.9*DL+1.0*WL", "0.9*DL+1.0*EQ"
+        ];
+        
+        function calculateLoad() {
+            let DL = parseFloat(document.getElementById('deadLoad').value);
+            let LL = parseFloat(document.getElementById('liveLoad').value);
+            let WL = parseFloat(document.getElementById('windLoad').value);
+            let EQ = parseFloat(document.getElementById('seismicLoad').value);
+            
+            let results = [];
+            
+            loadCombinations.forEach(combination => {
+                let formula = combination.replace(/DL/g, DL).replace(/LL/g, LL).replace(/WL/g, WL).replace(/EQ/g, EQ);
+                let calculatedLoad = eval(formula);
+                results.push({ combination, calculatedLoad });
+            });
+            
+            results.sort((a, b) => b.calculatedLoad - a.calculatedLoad);
+            
+            let table = document.getElementById('resultsTable');
+            table.innerHTML = '<tr><th>Load Combination</th><th>Calculated Load</th></tr>';
+            results.forEach(result => {
+                let row = table.insertRow();
+                row.insertCell(0).innerText = result.combination;
+                row.insertCell(1).innerText = result.calculatedLoad.toFixed(2);
+            });
+        }
+    </script>
+</body>
+</html>
