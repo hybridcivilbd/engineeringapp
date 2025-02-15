@@ -156,7 +156,7 @@
             <div class="result-line">Gross Area (Ag): <span id="Ag"></span> in²</div>
             <div class="result-line">Concrete Modulus (Ec): <span id="Ec"></span> ksi</div>
             <div class="result-line">Steel Ratio: <span id="steelRatio"></span></div>
-            <div class="result-line">Effective Stiffness (EI): X: <span id="EIeffX"></span>, Y: <span id="EIeffY"></span></div>
+            <div class="result-line">Effective Stiffness (EI):<span id="EIeffX"></span></div>
             <div class="result-line">Critical Buckling Load (Pc): <span id="Pc"></span> kips</div>
             <div class="result-line">Nominal Strength (Po): <span id="Po"></span> kips</div>
             <div class="result-line">Reduced Strength (Pn): <span id="Pn"></span> kips</div>
@@ -207,7 +207,7 @@
             document.getElementById('Ec').textContent = `${Ec}`;
             document.getElementById('steelRatio').textContent = `${steelRatio}`;
             document.getElementById('EIeffX').textContent = `${EIeff_x}`;
-            document.getElementById('EIeffY').textContent = `${EIeff_y}`;
+            // document.getElementById('EIeffY').textContent = `${EIeff_y}`;
             document.getElementById('Pc').textContent = `${Pc}`;
             document.getElementById('Po').textContent = `${Po}`;
             document.getElementById('Pn').textContent = `${Pn}`;
