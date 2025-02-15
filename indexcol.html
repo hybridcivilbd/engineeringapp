@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concrete Column Capacity Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0 20px;
+            line-height: 1.6;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+        .result-section h2 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .result-line {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            button {
+                font-size: 14px;
+                padding: 12px;
+            }
+            .result-line {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Concrete Column Capacity Calculator</h1>
+    
+    <div class="input-group">
+        <label>Width of Column (b, in):</label>
+        <input type="number" id="b" value="12" step="1">
+    </div>
+    
+    <div class="input-group">
+        <label>Height of Column (h, in):</label>
+        <input type="number" id="h" value="12" step="1">
+    </div>
+    
+    <div class="input-group">
+        <label>Rebar Size (mm):</label>
+        <input type="number" id="rebarSize" value="16" step="1">
+    </div>
+    
+    <div class="input-group">
+        <label>Unbraced Length About X-Axis (lu,x, ft):</label>
+        <input type="number" id="lu_x" value="10" step="0.1">
+    </div>
+    
+    <div class="input-group">
+        <label>Unbraced Length About Y-Axis (lu,y, ft):</label>
+        <input type="number" id="lu_y" value="10" step="0.1">
+    </div>
+    
+    <div class="input-group">
+        <label>Number of Longitudinal Bars (nos):</label>
+        <input type="number" id="nl" value="6" step="1">
+    </div>
+    
+    <div class="input-group">
+        <label>Compressive Strength of Concrete (f'c, psi):</label>
+        <input type="number" id="fc" value="2500" step="100">
+    </div>
+    
+    <div class="input-group">
+        <label>Steel Yield Strength (fy, psi):</label>
+        <input type="number" id="fy" value="60000" step="1000">
+    </div>
+    
+    <div class="input-group">
+        <label>Concrete Unit Weight (wc, kcf):</label>
+        <input type="number" id="wc" value="0.15" step="0.01">
+    </div>
+
+    <button onclick="calculate()">Calculate</button>
+
+    <div class="result-section">
+        <h2>Results</h2>
+        <div class="result-line" id="Ab"></div>
+        <div class="result-line" id="Ast"></div>
+        <div class="result-line" id="Ag"></div>
+        <div class="result-line" id="Ec"></div>
+        <div class="result-line" id="steelRatio"></div>
+        <div class="result-line" id="EIeff"></div>
+        <div class="result-line" id="Pc"></div>
+        <div class="result-line" id="Po"></div>
+        <div class="result-line" id="Pn"></div>
+        <div class="result-line" id="finalCapacity"></div>
+	<div class="result-line" id="axialCapacity"></div>
+    </div>
+
+    <script>
+        function calculate() {
+            const b = parseFloat(document.getElementById('b').value);
+            const h = parseFloat(document.getElementById('h').value);
+            const rebarSize = parseFloat(document.getElementById('rebarSize').value);
+            const lu_x = parseFloat(document.getElementById('lu_x').value);
+            const lu_y = parseFloat(document.getElementById('lu_y').value);
+            const nl = parseFloat(document.getElementById('nl').value);
+            const fc = parseFloat(document.getElementById('fc').value);
+            const fy = parseFloat(document.getElementById('fy').value);
+            const wc = parseFloat(document.getElementById('wc').value);
+
+            const Ab = (Math.PI * Math.pow(rebarSize / 2, 2) * 0.00155).toFixed(2);
+            const Ast = (Ab * nl).toFixed(2);
+            const Ag = (b * h).toFixed(0);
+            const Ec = (33 * Math.pow(wc * 1000, 1.5) * Math.sqrt(fc) / 1000).toFixed(2);
+            const steelRatio = (Ast / Ag).toFixed(5);
+            
+            const lx = (b * Math.pow(h, 3) / 12).toFixed(0);
+            const ly = (h * Math.pow(b, 3) / 12).toFixed(0);
+            
+            const beta_dns = 0.6;
+            const EIeff_x = (0.4 * Ec * lx / (1 + beta_dns)).toFixed(2);
+            const EIeff_y = (0.4 * Ec * ly / (1 + beta_dns)).toFixed(2);
+            
+            const Pc_x = (Math.PI * EIeff_x / Math.pow(lu_x * 12, 2)).toFixed(2);
+            const Pc_y = (Math.PI * EIeff_y / Math.pow(lu_y * 12, 2)).toFixed(2);
+            const Pc = Math.min(Pc_x, Pc_y);
+            
+            const Po = ((0.85 * fc * (Ag - Ast) + fy * Ast) / 1000).toFixed(2);
+            const Pn = (0.8 * Po).toFixed(2);
+            
+            const phi = 0.65;
+            const designCapacity = (phi * Math.min(Pc, Pn)).toFixed(2);
+	    const axialCapacity = (phi * Pn);
+
+            document.getElementById('Ab').innerHTML = `Area of Bar (Ab): ${Ab} in²`;
+            document.getElementById('Ast').innerHTML = `Total Steel Area (Ast): ${Ast} in²`;
+            document.getElementById('Ag').innerHTML = `Gross Area (Ag): ${Ag} in²`;
+            document.getElementById('Ec').innerHTML = `Concrete Modulus (Ec): ${Ec} ksi`;
+            document.getElementById('steelRatio').innerHTML = `Steel Ratio: ${steelRatio} (Min: 0.01, Max: 0.08)`;
+            document.getElementById('EIeff').innerHTML = `Effective Stiffness (EI): X: ${EIeff_x} k-in², Y: ${EIeff_y} k-in²`;
+            document.getElementById('Pc').innerHTML = `Critical Buckling Load (Pc): ${Pc} kips`;
+            document.getElementById('Po').innerHTML = `Nominal Strength (Po): ${Po} kips`;
+            document.getElementById('Pn').innerHTML = `Reduced Strength (Pn): ${Pn} kips`;
+            document.getElementById('finalCapacity').innerHTML = `Design Capacity: ${designCapacity} kips`;
+	    document.getElementById('axialCapacity').innerHTML = `Axial Capacity: ${axialCapacity} kips`;
+        }
+    </script>
+</body>
+</html>
