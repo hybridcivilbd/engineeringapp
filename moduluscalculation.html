@@ -1,15 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Concrete Modulus of Elasticity Calculator</title>
     <style>
-        body {font-family: Arial, sans-serif; padding: 20px;}
-        .calculator {max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px;}
-        .input-group {margin: 15px 0;}
-        label {display: block; margin-bottom: 5px;}
-        input {width: 100%; padding: 8px; margin-bottom: 10px;}
-        button {background: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer;}
-        .result {margin-top: 20px; padding: 15px; background: #f4f4f4;}
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .calculator {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .calculator h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            background: #4CAF50;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f4f4f4;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .result p {
+            margin: 8px 0;
+        }
+        @media (max-width: 600px) {
+            .calculator {
+                padding: 15px;
+            }
+            button {
+                padding: 10px;
+                font-size: 14px;
+            }
+            input {
+                font-size: 14px;
+                padding: 8px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -17,19 +83,19 @@
         <h2>Concrete Modulus Calculator</h2>
         
         <div class="input-group">
-            <label>Compressive Strength (f'c) in psi:</label>
+            <label for="fc">Compressive Strength (f'c) in psi:</label>
             <input type="number" id="fc" value="3500" step="100">
         </div>
 
         <h3>Stone Chips Concrete</h3>
         <div class="input-group">
-            <label>Density (lb/ft³):</label>
+            <label for="density-stone">Density (lb/ftÂ³):</label>
             <input type="number" id="density-stone" value="145" step="1">
         </div>
 
         <h3>Brick Chips Concrete</h3>
         <div class="input-group">
-            <label>Density (lb/ft³):</label>
+            <label for="density-brick">Density (lb/ftÂ³):</label>
             <input type="number" id="density-brick" value="125" step="1">
         </div>
 
