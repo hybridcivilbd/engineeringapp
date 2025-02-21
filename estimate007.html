@@ -175,7 +175,7 @@ function showEstimate() {
     const estimateData = columns.map(row => {
         const cells = row.querySelectorAll("td");
         return {
-            columnNos: cells[0].innerText,
+            columnNos: parseInt(cells[0].innerText),
             name: cells[1].innerText,
             size: cells[2].innerText,
             height: parseFloat(cells[3].innerText),
@@ -184,87 +184,163 @@ function showEstimate() {
     });
 
     const estimatePage = window.open("", "Estimate");
-    estimatePage.document.write("<html><head><title>Estimate Details</title></head><body>");
-    estimatePage.document.write("<h1>Estimate Details</h1>");
-    estimatePage.document.write("<table border='1' style='width:100%; text-align:center;'>");
-    estimatePage.document.write("<thead><tr><th>Column Nos</th><th>Name</th><th>Size</th><th>Height (ft)</th><th>Details</th></tr></thead><tbody>");
+    estimatePage.document.write(`
+        <html>
+            <head>
+                <title>Column Estimate Details</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 0;
+                        padding: 20px;
+                        background-color: #f8f9fa;
+                        color: #333;
+                    }
+                    h1 {
+                        text-align: center;
+                        color: #0056b3;
+                        font-size: 24px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 20px;
+                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                    }
+                    th, td {
+                        padding: 12px 15px;
+                        text-align: left;
+                        border: 1px solid #ddd;
+                    }
+                    th {
+                        background-color: #007bff;
+                        color: white;
+                        text-align: center;
+                    }
+                    tr:nth-child(even) {
+                        background-color: #f2f2f2;
+                    }
+                    tr:hover {
+                        background-color: #ddd;
+                    }
+                    td .details {
+                        font-size: 14px;
+                        color: #555;
+                    }
+                    @media (max-width: 768px) {
+                        h1 {
+                            font-size: 20px;
+                        }
+                        table, th, td {
+                            font-size: 12px;
+                        }
+                        th, td {
+                            padding: 8px 10px;
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        table {
+                            display: block;
+                            overflow-x: auto;
+                            white-space: nowrap;
+                        }
+                        th, td {
+                            display: block;
+                            text-align: left;
+                        }
+                        th {
+                            background-color: #0056b3;
+                        }
+                        tr {
+                            margin-bottom: 10px;
+                            display: block;
+                            border-bottom: 1px solid #ddd;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>Column Estimate Details</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Column Nos</th>
+                            <th>Name</th>
+                            <th>Size</th>
+                            <th>Height (ft)</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `);
 
     estimateData.forEach(data => {
-        const heightInFeet = data.height; // Height in feet
+        const heightInFeet = data.height;
         const columnX = parseFloat(data.size.split('x')[0]);
         const columnY = parseFloat(data.size.split('x')[1]);
 
-        // Calculate wet volume of concrete
-        const wetVolume = (heightInFeet * columnX * columnY) / 144; // ft³
-        const totalWetVolume = wetVolume * data.columnNos; // Total wet volume for all columns
+        const wetVolume = (heightInFeet * columnX * columnY) / 144; // ftÂ³
+        const totalWetVolume = wetVolume * data.columnNos;
+        const dryVolume = totalWetVolume * 1.54; // ftÂ³
 
-        // Calculate dry volume of concrete
-        const dryVolume = totalWetVolume * 1.54; // Dry volume = Wet volume × 1.54
+        const totalParts = 1 + 1.5 + 3;
+        const cementVolume = (1 / totalParts) * dryVolume;
+        const sandVolume = (1.5 / totalParts) * dryVolume;
+        const aggregateVolume = (3 / totalParts) * dryVolume;
 
-        // Calculate cement, sand, and aggregate (mix ratio 1:1.5:3)
-        const totalParts = 1 + 1.5 + 3; // Total parts in mix ratio
-        const cementVolume = (1 / totalParts) * dryVolume; // Cement volume in ft³
-        const sandVolume = (1.5 / totalParts) * dryVolume; // Sand volume in ft³
-        const aggregateVolume = (3 / totalParts) * dryVolume; // Aggregate volume in ft³
-
-        // Calculate number of cement bags (1 bag = 1.25 ft³)
-        const cementBags = Math.ceil(cementVolume / 1.25); // Round up to nearest whole number
-
-        // Round up sand and aggregate volumes
+        const cementBags = Math.ceil(cementVolume / 1.25);
         const sandCft = Math.ceil(sandVolume);
         const aggregateCft = Math.ceil(aggregateVolume);
 
-        // Calculate rebar weight
         let barDetails = "";
         data.rebars.split("\n").forEach(rebar => {
             const match = rebar.match(/(\d+) bars of (\d+)mm/);
             if (match) {
                 const nos = parseInt(match[1]);
                 const dia = parseInt(match[2]);
-                const weightPerFoot = (dia * dia) / 533; // Weight per foot in kg
-                const weight = (weightPerFoot * heightInFeet * nos * data.columnNos).toFixed(2); // Total weight in kg for all columns
+                const weightPerFoot = (dia * dia) / 533; // kg/ft
+                const weight = (weightPerFoot * heightInFeet * nos * data.columnNos).toFixed(2);
                 barDetails += `${nos} bars of ${dia}mm: ${weight} kg\n`;
             }
         });
 
-        // Calculate stirrup weight
         const clearCover = 1.5; // inches
         const stirrupDia = 10; // mm
         const stirrupSpacing = 5; // inches c/c
-
-        // Stirrup length
-        const stirrupLength = 2 * (columnX + columnY - 4 * clearCover) + 2 * (3 + 3); // 3+3 inches for hooks
-        const stirrupLengthFeet = stirrupLength / 12; // Convert inches to feet
-
-        // Number of stirrups
+        const stirrupLength = 2 * (columnX + columnY - 4 * clearCover) + 2 * (3 + 3); // inches
+        const stirrupLengthFeet = stirrupLength / 12;
         const numberOfStirrups = Math.ceil((heightInFeet * 12) / stirrupSpacing) * data.columnNos;
-
-        // Stirrup weight
-        const stirrupWeightPerFoot = (stirrupDia * stirrupDia) / 533; // Weight per foot in kg
-        const stirrupWeight = (stirrupWeightPerFoot * stirrupLengthFeet * numberOfStirrups).toFixed(2); // Total weight in kg
+        const stirrupWeightPerFoot = (stirrupDia * stirrupDia) / 533;
+        const stirrupWeight = (stirrupWeightPerFoot * stirrupLengthFeet * numberOfStirrups).toFixed(2);
 
         barDetails += `Stirrups: ${numberOfStirrups} stirrups of ${stirrupDia}mm: ${stirrupWeight} kg\n`;
 
-        estimatePage.document.write(
-            `<tr>
+        estimatePage.document.write(`
+            <tr>
                 <td>${data.columnNos}</td>
                 <td>${data.name}</td>
                 <td>${data.size}</td>
                 <td>${data.height.toFixed(2)}</td>
-                <td>
+                <td class="details">
                     Cement: ${cementBags} bags (50 kg)<br>
                     Sand: ${sandCft} cft<br>
                     Aggregate: ${aggregateCft} cft<br>
                     Bars:<br>${barDetails.replace(/\n/g, "<br>")}
                 </td>
-            </tr>`
-        );
+            </tr>
+        `);
     });
 
-    estimatePage.document.write("</tbody></table>");
-    estimatePage.document.write("</body></html>");
+    estimatePage.document.write(`
+                    </tbody>
+                </table>
+            </body>
+        </html>
+    `);
+
     estimatePage.document.close();
 }
+
     </script>
 </body>
 </html>
