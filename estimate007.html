@@ -170,8 +170,6 @@
             `;
         }
 
-let estimateWindow = null; // Global variable to store the reference to the estimate window
-
 function showEstimate() {
     const columns = Array.from(document.querySelectorAll("#columnList tr"));
     const estimateData = columns.map(row => {
@@ -185,12 +183,8 @@ function showEstimate() {
         };
     });
 
-    // Open or refresh the estimate window
-    if (!estimateWindow || estimateWindow.closed) {
-        estimateWindow = window.open("", "Estimate");
-    } else {
-        estimateWindow.document.body.innerHTML = ""; // Clear existing content
-    }
+    // Always recreate a fresh estimate window
+    const estimateWindow = window.open("", "_blank");
 
     estimateWindow.document.write(`
         <html>
@@ -311,6 +305,17 @@ function showEstimate() {
                 barDetails += `${nos} bars of ${dia}mm: ${weight} kg\n`;
             }
         });
+
+        const clearCover = 1.5; // inches
+        const stirrupDia = 10; // mm
+        const stirrupSpacing = 5; // inches c/c
+        const stirrupLength = 2 * (columnX + columnY - 4 * clearCover) + 2 * (3 + 3); // inches
+        const stirrupLengthFeet = stirrupLength / 12;
+        const numberOfStirrups = Math.ceil((heightInFeet * 12) / stirrupSpacing) * data.columnNos;
+        const stirrupWeightPerFoot = (stirrupDia * stirrupDia) / 533;
+        const stirrupWeight = (stirrupWeightPerFoot * stirrupLengthFeet * numberOfStirrups).toFixed(2);
+
+        barDetails += `Stirrups: ${numberOfStirrups} stirrups of ${stirrupDia}mm: ${stirrupWeight} kg\n`;
 
         estimateWindow.document.write(`
             <tr>
