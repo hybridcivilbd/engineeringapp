@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Footing Estimate Input</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 90%;
+            width: 400px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .rebar-container {
+            margin-bottom: 20px;
+        }
+        .rebar-input {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+            gap: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Footing Input</h2>
+        <label>Footing Name:</label>
+        <input type="text" id="footingName" placeholder="Enter footing name" required>
+
+        <label>Footing Length (ft):</label>
+        <input type="number" id="footingLength" placeholder="Enter length" required>
+
+        <label>Footing Breadth (ft):</label>
+        <input type="number" id="footingBreadth" placeholder="Enter breadth" required>
+
+        <label>Footing Thickness (in):</label>
+        <input type="number" id="footingThickness" placeholder="Enter thickness" required>
+
+        <label>Number of Footings:</label>
+        <input type="number" id="footingNos" placeholder="Enter number of footings" required>
+
+        <div class="rebar-container" id="rebarContainer">
+            <div class="rebar-input">
+                <button type="button" onclick="addRebarField()">+</button>
+                <button type="button" onclick="removeRebarField(this)">-</button>
+                <input type="number" class="barDia" placeholder="Bar Diameter (mm)" required>
+                <input type="number" class="barSpacing" placeholder="Spacing (in)" required>
+            </div>
+        </div>
+
+        <button onclick="addFooting()">Add Footing</button>
+
+        <h3>Footing List</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Footing Nos</th>
+                    <th>Name</th>
+                    <th>Dimensions (ft)</th>
+                    <th>Thickness (ft)</th>
+                    <th>Rebars</th>
+                </tr>
+            </thead>
+            <tbody id="footingList"></tbody>
+        </table>
+
+        <button onclick="showEstimate()">Estimate</button>
+    </div>
+
+    <script>
+        function addRebarField() {
+            let container = document.getElementById("rebarContainer");
+            let div = document.createElement("div");
+            div.classList.add("rebar-input");
+            div.innerHTML = `
+                <button type="button" onclick="addRebarField()">+</button>
+                <button type="button" onclick="removeRebarField(this)">-</button>
+                <input type="number" class="barDia" placeholder="Bar Diameter (mm)" required>
+                <input type="number" class="barSpacing" placeholder="Spacing (in)" required>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeRebarField(button) {
+            let container = document.getElementById("rebarContainer");
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
+
+        function addFooting() {
+            let footingName = document.getElementById("footingName").value;
+            let footingLength = document.getElementById("footingLength").value;
+            let footingBreadth = document.getElementById("footingBreadth").value;
+            let footingThickness = document.getElementById("footingThickness").value;
+            let footingNos = document.getElementById("footingNos").value;
+            let rebars = document.querySelectorAll(".rebar-input");
+            let rebarDetails = [];
+
+            rebars.forEach((rebar, index) => {
+                let barDia = rebar.querySelector(".barDia").value;
+                let barSpacing = rebar.querySelector(".barSpacing").value;
+                rebarDetails.push(`Rebar ${index + 1}: ${barDia}mm @ ${barSpacing}in c/c`);
+            });
+
+            let footingList = document.getElementById("footingList");
+            let row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${footingNos}</td>
+                <td>${footingName}</td>
+                <td>${footingLength}x${footingBreadth}</td>
+                <td>${footingThickness}</td>
+                <td>${rebarDetails.join("<br>")}</td>
+            `;
+            footingList.appendChild(row);
+
+            document.getElementById("footingName").value = "";
+            document.getElementById("footingLength").value = "";
+            document.getElementById("footingBreadth").value = "";
+            document.getElementById("footingThickness").value = "";
+            document.getElementById("footingNos").value = "";
+            document.getElementById("rebarContainer").innerHTML = `
+                <div class="rebar-input">
+                    <button type="button" onclick="addRebarField()">+</button>
+                    <button type="button" onclick="removeRebarField(this)">-</button>
+                    <input type="number" class="barDia" placeholder="Bar Diameter (mm)" required>
+                    <input type="number" class="barSpacing" placeholder="Spacing (in)" required>
+                </div>
+            `;
+        }
+
+ function showEstimate() {
+    const footings = Array.from(document.querySelectorAll("#footingList tr"));
+    const estimateData = footings.map(row => {
+        const cells = row.querySelectorAll("td");
+        return {
+            footingNos: parseFloat(cells[0].innerText),
+            name: cells[1].innerText,
+            dimensions: cells[2].innerText,
+            thickness: parseFloat(cells[3].innerText) / 12, // Convert inches to feet
+            rebars: cells[4].innerHTML.replace(/<br>/g, "\n")
+        };
+    });
+
+    const estimatePage = window.open("", "Estimate");
+    estimatePage.document.write(`
+        <html>
+            <head>
+                <title>Estimate Details</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 0;
+                        padding: 20px;
+                        background-color: #f8f9fa;
+                        color: #333;
+                    }
+                    h1 {
+                        text-align: center;
+                        color: #0056b3;
+                        font-size: 24px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 20px;
+                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                    }
+                    th, td {
+                        padding: 12px 15px;
+                        text-align: left;
+                        border: 1px solid #ddd;
+                    }
+                    th {
+                        background-color: #007bff;
+                        color: white;
+                    }
+                    tr:nth-child(even) {
+                        background-color: #f2f2f2;
+                    }
+                    tr:hover {
+                        background-color: #ddd;
+                    }
+                    .details {
+                        font-size: 14px;
+                        color: #555;
+                    }
+                    @media (max-width: 768px) {
+                        body {
+                            padding: 10px;
+                        }
+                        h1 {
+                            font-size: 20px;
+                        }
+                        table, th, td {
+                            font-size: 12px;
+                        }
+                        th, td {
+                            padding: 8px 10px;
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        table {
+                            display: block;
+                            overflow-x: auto;
+                            white-space: nowrap;
+                        }
+                        th, td {
+                            display: block;
+                            text-align: left;
+                        }
+                        th {
+                            background-color: #0056b3;
+                        }
+                        tr {
+                            margin-bottom: 10px;
+                            display: block;
+                            border-bottom: 1px solid #ddd;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>Footing Estimate Details</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Footing Nos</th>
+                            <th>Name</th>
+                            <th>Dimensions</th>
+                            <th>Thickness (inches)</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `);
+
+    estimateData.forEach(data => {
+        const length = parseFloat(data.dimensions.split('x')[0]);
+        const breadth = parseFloat(data.dimensions.split('x')[1]);
+
+        const volume = length * breadth * data.thickness * data.footingNos; // ft&sup3
+        const dryVolume = volume * 1.54; // ft&sup3
+        const totalParts = 1 + 1.5 + 3;
+        const cementVolume = (1 / totalParts) * dryVolume;
+        const sandVolume = (1.5 / totalParts) * dryVolume;
+        const aggregateVolume = (3 / totalParts) * dryVolume;
+        const cementBags = Math.ceil(cementVolume / 1.25);
+
+        let totalRebarWeight = 0;
+        let rebarDetails = data.rebars.split("\n").map(rebarText => {
+            const diaMatch = rebarText.match(/(\d+)mm/);
+            const spacingMatch = rebarText.match(/(\d+)in/);
+            if (!diaMatch || !spacingMatch) return `${rebarText}: Invalid format`;
+
+            const dia = parseFloat(diaMatch[1]);
+            const spacingInches = parseFloat(spacingMatch[1]);
+            const spacingFeet = spacingInches / 12;
+            const numRebarsLength = Math.ceil(length / spacingFeet) + 1;
+            const numRebarsBreadth = Math.ceil(breadth / spacingFeet) + 1;
+            const totalLengthLength = numRebarsLength * breadth * data.footingNos;
+            const totalLengthBreadth = numRebarsBreadth * length * data.footingNos;
+            const totalLength = totalLengthLength + totalLengthBreadth;
+            const totalLengthMeters = totalLength * 0.3048;
+            const weight = (Math.pow(dia, 2) / 162) * totalLengthMeters;
+
+            totalRebarWeight += weight;
+            return `${rebarText}: ${weight.toFixed(2)} kg`;
+        }).join("<br>");
+
+        estimatePage.document.write(`
+            <tr>
+                <td>${data.footingNos}</td>
+                <td>${data.name}</td>
+                <td>${data.dimensions}</td>
+                <td>${(data.thickness * 12).toFixed(2)}</td>
+                <td class="details">
+                    <strong>Concrete Volume:</strong> ${volume.toFixed(2)} ft&sup3<br>
+                    <strong>Dry Volume:</strong> ${dryVolume.toFixed(2)} ft&sup3<br>
+                    <strong>Cement:</strong> ${cementBags} bags<br>
+                    <strong>Sand:</strong> ${sandVolume.toFixed(2)} ft&sup3<br>
+                    <strong>Aggregate:</strong> ${aggregateVolume.toFixed(2)} ft&sup3<br>
+                    <strong>Total Rebar Weight:</strong> ${totalRebarWeight.toFixed(2)} kg<br>
+                    <strong>Rebar Details:</strong><br>${rebarDetails}
+                </td>
+            </tr>
+        `);
+    });
+
+    estimatePage.document.write(`
+                    </tbody>
+                </table>
+            </body>
+        </html>
+    `);
+
+    estimatePage.document.close();
+}
+
+    </script>
+</body>
+</html>
