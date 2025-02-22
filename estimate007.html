@@ -309,7 +309,7 @@ function showEstimate() {
         const clearCover = 1.5; // inches
         const stirrupDia = 10; // mm
         const stirrupSpacing = 5; // inches c/c
-        const stirrupLength = (2 * (columnX + columnY)  - clearCover)) + (3 + 3); // inches
+        const stirrupLength = 2 * (columnX + columnY * clearCover) + (3 + 3); // inches
         const stirrupLengthFeet = stirrupLength / 12;
         const numberOfStirrups = Math.ceil((heightInFeet * 12) / stirrupSpacing) * data.columnNos;
         const stirrupWeightPerFoot = (stirrupDia * stirrupDia) / 533;
