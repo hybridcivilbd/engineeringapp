@@ -309,14 +309,17 @@ function showEstimate() {
 const clearCover = 1.5; // inches
 const stirrupDia = 10; // mm
 const stirrupSpacing = 5; // inches c/c
-const stirrupLength = 2 * (columnX + columnY - 2 * clearCover) + 6; // Add extra 6 inches
-const stirrupLengthFeet = stirrupLength / 12;
+
+// Adjusted stirrup length with clear cover and extra 6 inches
+const stirrupLength = 2 * (columnX - 2 * clearCover) + 2 * (columnY - 2 * clearCover) + 6; 
+const stirrupLengthFeet = stirrupLength / 12; // Convert to feet
+
 const numberOfStirrups = Math.ceil((heightInFeet * 12) / stirrupSpacing) * data.columnNos;
-const stirrupWeightPerFoot = (stirrupDia * stirrupDia) / 533;
+const stirrupWeightPerFoot = (stirrupDia * stirrupDia) / 533; // kg/ft
 const stirrupWeight = (stirrupWeightPerFoot * stirrupLengthFeet * numberOfStirrups).toFixed(2);
 
+barDetails += `Stirrups: ${numberOfStirrups} stirrups of ${stirrupDia}mm: ${stirrupWeight} kg\n`;
 
-        barDetails += `Stirrups: ${numberOfStirrups} stirrups of ${stirrupDia}mm: ${stirrupWeight} kg\n`;
 
         estimateWindow.document.write(`
             <tr>
