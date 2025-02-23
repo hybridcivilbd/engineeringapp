@@ -392,5 +392,136 @@
             // ... rest of calculateAll() function remains unchanged ...
         }
     </script>
+    <script>
+function calculateAll() {
+    const estimatePage = window.open('', '_blank', 'width=1000,height=800');
+    estimatePage.document.write(`
+        <html>
+            <head>
+                <title>Beam Construction Estimate</title>
+                <style>
+                    body { font-family: Arial; padding: 30px; }
+                    h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                    th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+                    th { background: #3498db; color: white; }
+                    .total-row { background-color: #f8f9fa; font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                <h2>Construction Material Estimate</h2>
+                <h3>Material Summary</h3>
+                <table id="materialSummary">
+                    <tr><th>Material</th><th>Quantity</th></tr>
+                </table>
+                
+                <h3>Detailed Beam Specifications</h3>
+                <table id="beamSpecifications">
+                    <tr>
+                        <th>Beam ID</th>
+                        <th>Dimensions</th>
+                        <th>Length</th>
+                        <th>Main Bars</th>
+                        <th>Stirrups</th>
+                        <th>Extra Top Bars</th>
+                        <th>Extra Bottom Bars</th>
+                    </tr>
+                </table>
+            </body>
+        </html>
+    `);
+
+    // Calculations
+    let totalDryVolume = 0;
+    const steelBySize = {};
+    let totalStirrupSteel = 0;
+
+    beams.forEach(beam => {
+        // Concrete calculations
+        const widthFt = beam.width / 12;
+        const depthFt = beam.depth / 12;
+        const wetVolume = widthFt * depthFt * beam.length;
+        const dryVolume = wetVolume * 1.54;
+        totalDryVolume += dryVolume;
+
+        // Main steel calculations
+        beam.mainBars.forEach(bar => {
+            const steelWeight = (bar.qty * beam.length * Math.pow(bar.size, 2)) / 533;
+            const sizeKey = `${bar.size}mm`;
+            steelBySize[sizeKey] = (steelBySize[sizeKey] || 0) + steelWeight;
+        });
+
+        // Extra Top Bars
+        const extraTopBarWeight = (beam.extraTopBars.nos * 2 * beam.extraTopBars.length * Math.pow(beam.extraTopBars.dia, 2)) / 533;
+        const extraTopBarKey = `${beam.extraTopBars.dia}mm (Extra Top)`;
+        steelBySize[extraTopBarKey] = (steelBySize[extraTopBarKey] || 0) + extraTopBarWeight;
+
+        // Extra Bottom Bars
+        const extraBottomBarWeight = (beam.extraBottomBars.nos * beam.extraBottomBars.length * Math.pow(beam.extraBottomBars.dia, 2)) / 533;
+        const extraBottomBarKey = `${beam.extraBottomBars.dia}mm (Extra Bottom)`;
+        steelBySize[extraBottomBarKey] = (steelBySize[extraBottomBarKey] || 0) + extraBottomBarWeight;
+
+        // Stirrup calculations
+        const widthMm = beam.width * 25.4;
+        const depthMm = beam.depth * 25.4;
+        const lengthMm = beam.length * 304.8;
+        const spacingMm = beam.stirrupSpacing * 25.4;
+        const coverMm = COVER_IN * 25.4;
+
+        const adjustedWidth = widthMm - 2 * coverMm;
+        const adjustedDepth = depthMm - 2 * coverMm;
+        const perimeter = 2 * (adjustedWidth + adjustedDepth);
+        const hookLength = 10 * 10;
+        const stirrupLength = (perimeter + 2 * hookLength) / 1000;
+        const numberOfStirrups = Math.ceil(lengthMm / spacingMm);
+        const totalStirrupLength = numberOfStirrups * stirrupLength;
+        const stirrupWeight = (100 / 162) * totalStirrupLength;
+
+        totalStirrupSteel += stirrupWeight;
+
+        // Add beam details
+        estimatePage.document.querySelector('#beamSpecifications').innerHTML += `
+            <tr>
+                <td>${beam.name}</td>
+                <td>${beam.width}"×${beam.depth}"</td>
+                <td>${beam.length}ft</td>
+                <td>${beam.mainBars.map(b => `${b.qty}×${b.size}mm`).join(', ')}</td>
+                <td>10mm @ ${beam.stirrupSpacing}"</td>
+                <td>${beam.extraTopBars.nos * 2}×${beam.extraTopBars.dia}mm (${beam.extraTopBars.length}ft)</td>
+                <td>${beam.extraBottomBars.nos}×${beam.extraBottomBars.dia}mm (${beam.extraBottomBars.length}ft)</td>
+            </tr>
+        `;
+    });
+
+    // Material calculations
+    const cementBags = Math.ceil((totalDryVolume * (1/MIX_RATIO_TOTAL)) / CEMENT_PER_BAG);
+    const sand = (totalDryVolume * (1.5/MIX_RATIO_TOTAL)).toFixed(1);
+    const aggregate = (totalDryVolume * (3/MIX_RATIO_TOTAL)).toFixed(1);
+
+    // Update material summary
+    const materialTable = estimatePage.document.querySelector('#materialSummary');
+    materialTable.innerHTML += `
+        <tr><td>Cement Bags (50kg)</td><td>${cementBags}</td></tr>
+        <tr><td>Sand (cft)</td><td>${sand}</td></tr>
+        <tr><td>Aggregate (cft)</td><td>${aggregate}</td></tr>
+    `;
+
+    // Add steel entries
+    Object.entries(steelBySize).forEach(([size, weight]) => {
+        materialTable.innerHTML += `
+            <tr><td>${size}</td><td>${weight.toFixed(1)} kg</td></tr>
+        `;
+    });
+
+    materialTable.innerHTML += `
+        <tr class="total-row">
+            <td>10mm Stirrup Steel</td>
+            <td>${totalStirrupSteel.toFixed(1)} kg</td>
+        </tr>
+    `;
+
+    estimatePage.document.close();
+}
+</script>
 </body>
 </html>
