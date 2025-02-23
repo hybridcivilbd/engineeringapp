@@ -1,0 +1,90 @@
+<!DOCTYPE html><html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beam Material Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Beam Material Calculator</h2>
+        <label>Beam Length (ft):</label>
+        <input type="number" id="beamLength" placeholder="Enter length in feet"><label>Beam Width (in):</label>
+    <input type="number" id="beamWidth" placeholder="Enter width in inches">
+    
+    <label>Beam Depth (in):</label>
+    <input type="number" id="beamDepth" placeholder="Enter depth in inches">
+    
+    <label>Rebar Diameter (mm):</label>
+    <input type="number" id="rebarDia" placeholder="Enter rebar diameter">
+    
+    <label>No. of Bars:</label>
+    <input type="number" id="numBars" placeholder="Enter number of bars">
+    
+    <button onclick="calculateMaterials()">Calculate</button>
+    
+    <h3>Material Estimate</h3>
+    <p id="output"></p>
+</div>
+
+<script>
+    function calculateMaterials() {
+        let length = parseFloat(document.getElementById('beamLength').value) * 12; // Convert to inches
+        let width = parseFloat(document.getElementById('beamWidth').value);
+        let depth = parseFloat(document.getElementById('beamDepth').value);
+        let dia = parseFloat(document.getElementById('rebarDia').value);
+        let numBars = parseInt(document.getElementById('numBars').value);
+        
+        if (isNaN(length) || isNaN(width) || isNaN(depth) || isNaN(dia) || isNaN(numBars)) {
+            alert('Please enter valid values');
+            return;
+        }
+        
+        let volume = (length * width * depth) / 1728; // Convert cubic inches to cubic feet
+        let cement = volume * 1.54 * 0.25 * 1440; // Cement in kg
+        let sand = volume * 1.54 * 0.4 * 35.32; // Sand in cubic feet
+        let aggregate = volume * 1.54 * 0.75 * 35.32; // Aggregate in cubic feet
+        let steelWeight = (dia * dia * length * numBars * 0.006165).toFixed(2); // Steel weight in kg
+        
+        document.getElementById('output').innerHTML = `
+            <b>Cement:</b> ${cement.toFixed(2)} kg<br>
+            <b>Sand:</b> ${sand.toFixed(2)} cft<br>
+            <b>Aggregate:</b> ${aggregate.toFixed(2)} cft<br>
+            <b>Steel:</b> ${steelWeight} kg
+        `;
+    }
+</script>
+
+</body>
+</html>
