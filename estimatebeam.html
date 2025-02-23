@@ -2,29 +2,156 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Beam Material Calculator</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
-        .container { max-width: 800px; margin: 0 auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
-        input, select { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px; }
-        button { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
-        button:hover { background: #218838; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-        th { background: #007bff; color: white; }
-        .rebar-input { display: flex; gap: 10px; margin: 10px 0; align-items: center; }
-        .secondary-btn { background: #6c757d; }
-        .secondary-btn:hover { background: #5a6268; }
+        :root {
+            --primary-color: #28a745;
+            --secondary-color: #6c757d;
+            --background-color: #f4f4f4;
+            --container-bg: white;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 15px;
+            background-color: var(--background-color);
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: var(--container-bg);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            -webkit-appearance: none;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px 0;
+            font-size: 1rem;
+            min-width: 120px;
+            touch-action: manipulation;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            overflow-x: auto;
+            display: block;
+        }
+
+        th, td {
+            padding: 14px;
+            border: 1px solid #ddd;
+            text-align: left;
+            min-width: 120px;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: #007bff;
+            color: white;
+            font-size: 0.95rem;
+        }
+
+        .rebar-input {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .secondary-btn {
+            background: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            input, select {
+                padding: 14px;
+            }
+
+            button {
+                width: 100%;
+                padding: 16px;
+            }
+
+            th, td {
+                padding: 12px;
+                min-width: 100px;
+            }
+
+            .rebar-input {
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+                font-size: 15px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            th, td {
+                padding: 10px;
+                font-size: 0.85rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Beam Material Calculator</h2>
         
-        <!-- Input Section -->
         <div class="input-group">
             <label>Beam Name:</label>
             <input type="text" id="beamName" placeholder="Enter beam identifier">
@@ -35,16 +162,16 @@
             <input type="number" id="numberOfBeams" value="1" min="1">
         </div>
 
-        <div style="display: flex; gap: 15px;">
-            <div class="input-group" style="flex: 1;">
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <div class="input-group" style="flex: 1 1 200px;">
                 <label>Width (in):</label>
                 <input type="number" id="beamWidth" value="12">
             </div>
-            <div class="input-group" style="flex: 1;">
+            <div class="input-group" style="flex: 1 1 200px;">
                 <label>Depth (in):</label>
                 <input type="number" id="beamDepth" value="18">
             </div>
-            <div class="input-group" style="flex: 1;">
+            <div class="input-group" style="flex: 1 1 200px;">
                 <label>Length (ft):</label>
                 <input type="number" id="beamLength" value="10">
             </div>
@@ -55,7 +182,6 @@
             <input type="number" id="stirrupSpacing" value="6">
         </div>
 
-        <!-- Main Bar Configuration -->
         <div class="input-group">
             <h3>Main Reinforcement</h3>
             <div id="rebarInputs">
@@ -67,39 +193,28 @@
             </div>
         </div>
 
-        <!-- Extra Top Bars -->
         <div class="input-group">
             <h3>Extra Top Bars at Supports</h3>
             <label>Number of Extra Top Bars (per support):</label>
             <input type="number" id="extraTopBarNos" value="2">
-        </div>
-        <div class="input-group">
             <label>Extra Top Bar Diameter (mm):</label>
             <input type="number" id="extraTopBarDia" value="16">
-        </div>
-        <div class="input-group">
             <label>Extra Top Bar Length (ft):</label>
             <input type="number" id="extraTopBarLength" value="3.33" readonly>
         </div>
 
-        <!-- Extra Bottom Bars -->
         <div class="input-group">
             <h3>Extra Bottom Bars at Mid-Span</h3>
             <label>Number of Extra Bottom Bars:</label>
             <input type="number" id="extraBottomBarNos" value="2">
-        </div>
-        <div class="input-group">
             <label>Extra Bottom Bar Diameter (mm):</label>
             <input type="number" id="extraBottomBarDia" value="16">
-        </div>
-        <div class="input-group">
             <label>Extra Bottom Bar Length (ft):</label>
             <input type="number" id="extraBottomBarLength" value="5" readonly>
         </div>
 
         <button onclick="addBeam()">Add Beam to List</button>
-        
-        <!-- Beam List -->
+
         <h3>Beam Inventory</h3>
         <table id="beamList">
             <thead>
@@ -123,19 +238,18 @@
 
     <script>
         let beams = [];
-        const MIX_RATIO_TOTAL = 5.5; // 1 + 1.5 + 3
-        const CEMENT_PER_BAG = 1.25; // cft
-        const COVER_IN = 1.5; // 1.5" clear cover
+        const MIX_RATIO_TOTAL = 5.5;
+        const CEMENT_PER_BAG = 1.25;
+        const COVER_IN = 1.5;
 
-        // Automatically calculate extra top and bottom bar lengths
+        // Auto-calculate extra bar lengths
         document.getElementById('beamLength').addEventListener('input', function() {
-            const beamLength = parseFloat(this.value);
-            const extraTopBarLength = beamLength / 3; // 1/3 of beam length
-            const extraBottomBarLength = beamLength / 2; // 1/2 of beam length
-            document.getElementById('extraTopBarLength').value = extraTopBarLength.toFixed(2);
-            document.getElementById('extraBottomBarLength').value = extraBottomBarLength.toFixed(2);
+            const beamLength = parseFloat(this.value) || 0;
+            document.getElementById('extraTopBarLength').value = (beamLength / 3).toFixed(2);
+            document.getElementById('extraBottomBarLength').value = (beamLength / 2).toFixed(2);
         });
 
+        // Dynamic rebar fields
         function addRebarField() {
             const div = document.createElement('div');
             div.className = 'rebar-input';
@@ -147,10 +261,11 @@
             document.getElementById('rebarInputs').appendChild(div);
         }
 
+        // Add beam to inventory
         function addBeam() {
-            const numberOfBeams = parseInt(document.getElementById('numberOfBeams').value);
-
-            for (let i = 0; i < numberOfBeams; i++) {
+            const numberOfBeams = parseInt(document.getElementById('numberOfBeams').value) || 1;
+            
+            for(let i = 0; i < numberOfBeams; i++) {
                 const beam = {
                     name: document.getElementById('beamName').value || `Beam-${beams.length + 1}`,
                     width: parseFloat(document.getElementById('beamWidth').value),
@@ -171,39 +286,41 @@
                 };
 
                 document.querySelectorAll('.rebar-input').forEach(input => {
-                    const size = parseFloat(input.querySelector('.barSize').value);
-                    const qty = parseFloat(input.querySelector('.barQty').value);
-                    if(size && qty) beam.mainBars.push({ size, qty });
+                    const size = parseFloat(input.querySelector('.barSize').value) || 0;
+                    const qty = parseFloat(input.querySelector('.barQty').value) || 0;
+                    if(size > 0 && qty > 0) beam.mainBars.push({ size, qty });
                 });
 
                 beams.push(beam);
             }
-
             updateBeamList();
             clearInputs();
         }
 
+        // Update beam table
         function updateBeamList() {
             const tbody = document.querySelector('#beamList tbody');
             tbody.innerHTML = beams.map((beam, index) => `
                 <tr>
                     <td>${beam.name}</td>
-                    <td>${beam.width}" × ${beam.depth}"</td>
-                    <td>${beam.length} ft</td>
+                    <td>${beam.width}"×${beam.depth}"</td>
+                    <td>${beam.length}ft</td>
                     <td>${beam.mainBars.map(b => `${b.qty}×${b.size}mm`).join(', ')}</td>
                     <td>10mm @ ${beam.stirrupSpacing}"</td>
-                    <td>${beam.extraTopBars.nos * 2}×${beam.extraTopBars.dia}mm (${beam.extraTopBars.length}ft)</td>
-                    <td>${beam.extraBottomBars.nos}×${beam.extraBottomBars.dia}mm (${beam.extraBottomBars.length}ft)</td>
+                    <td>${beam.extraTopBars.nos * 2}×${beam.extraTopBars.dia}mm</td>
+                    <td>${beam.extraBottomBars.nos}×${beam.extraBottomBars.dia}mm</td>
                     <td><button onclick="deleteBeam(${index})" class="secondary-btn">Delete</button></td>
                 </tr>
             `).join('');
         }
 
+        // Delete beam
         function deleteBeam(index) {
             beams.splice(index, 1);
             updateBeamList();
         }
 
+        // Clear form
         function clearInputs() {
             document.getElementById('beamName').value = '';
             document.getElementById('rebarInputs').innerHTML = `
@@ -215,19 +332,24 @@
             `;
         }
 
+        // Generate estimate
         function calculateAll() {
-            const estimatePage = window.open('', '_blank', 'width=1000,height=800');
-            estimatePage.document.write(`
+            const estimateWindow = window.open('', '_blank');
+            estimateWindow.document.write(`
                 <html>
                     <head>
-                        <title>Beam Construction Estimate</title>
+                        <title>Material Estimate</title>
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
                         <style>
-                            body { font-family: Arial; padding: 30px; }
+                            body { font-family: Arial; padding: 15px; margin: 0; }
                             h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-                            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                            table { width: 100%; border-collapse: collapse; margin: 20px 0; overflow-x: auto; }
                             th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
                             th { background: #3498db; color: white; }
-                            .total-row { background-color: #f8f9fa; font-weight: bold; }
+                            @media (max-width: 768px) {
+                                body { padding: 10px; }
+                                th, td { padding: 8px; font-size: 14px; }
+                            }
                         </style>
                     </head>
                     <body>
@@ -236,17 +358,14 @@
                         <table id="materialSummary">
                             <tr><th>Material</th><th>Quantity</th></tr>
                         </table>
-                        
-                        <h3>Detailed Beam Specifications</h3>
-                        <table id="beamSpecifications">
+                        <h3>Beam Specifications</h3>
+                        <table id="beamSpecs">
                             <tr>
-                                <th>Beam ID</th>
+                                <th>Beam Name</th>
                                 <th>Dimensions</th>
                                 <th>Length</th>
                                 <th>Main Bars</th>
                                 <th>Stirrups</th>
-                                <th>Extra Top Bars</th>
-                                <th>Extra Bottom Bars</th>
                             </tr>
                         </table>
                     </body>
@@ -254,95 +373,49 @@
             `);
 
             // Calculations
-            let totalDryVolume = 0;
-            const steelBySize = {};
-            let totalStirrupSteel = 0;
-
+            let totalConcrete = 0;
+            let totalSteel = 0;
+            
             beams.forEach(beam => {
-                // Concrete calculations
-                const widthFt = beam.width / 12;
-                const depthFt = beam.depth / 12;
-                const wetVolume = widthFt * depthFt * beam.length;
-                const dryVolume = wetVolume * 1.54;
-                totalDryVolume += dryVolume;
+                // Concrete calculation
+                const concreteVolume = (beam.width/12) * (beam.depth/12) * beam.length * 1.54;
+                totalConcrete += concreteVolume;
 
-                // Main steel calculations
+                // Steel calculation
+                let beamSteel = 0;
                 beam.mainBars.forEach(bar => {
-                    const steelWeight = (bar.qty * beam.length * Math.pow(bar.size, 2)) / 533;
-                    const sizeKey = `${bar.size}mm`;
-                    steelBySize[sizeKey] = (steelBySize[sizeKey] || 0) + steelWeight;
+                    beamSteel += (bar.qty * beam.length * Math.pow(bar.size, 2)) / 533;
                 });
+                
+                // Stirrups calculation
+                const stirrupQty = Math.ceil((beam.length * 12) / beam.stirrupSpacing);
+                const stirrupWeight = (stirrupQty * ((beam.width + beam.depth) * 2 * 0.222)) / 1000;
+                beamSteel += stirrupWeight;
 
-                // Extra Top Bars Calculation (multiplied by 2 for both supports)
-                const extraTopBarWeight = (beam.extraTopBars.nos * 2 * beam.extraTopBars.length * Math.pow(beam.extraTopBars.dia, 2)) / 533;
-                const extraTopBarKey = `${beam.extraTopBars.dia}mm (Extra Top)`;
-                steelBySize[extraTopBarKey] = (steelBySize[extraTopBarKey] || 0) + extraTopBarWeight;
+                totalSteel += beamSteel;
 
-                // Extra Bottom Bars Calculation
-                const extraBottomBarWeight = (beam.extraBottomBars.nos * beam.extraBottomBars.length * Math.pow(beam.extraBottomBars.dia, 2)) / 533;
-                const extraBottomBarKey = `${beam.extraBottomBars.dia}mm (Extra Bottom)`;
-                steelBySize[extraBottomBarKey] = (steelBySize[extraBottomBarKey] || 0) + extraBottomBarWeight;
-
-                // Stirrup calculations
-                const widthMm = beam.width * 25.4;
-                const depthMm = beam.depth * 25.4;
-                const lengthMm = beam.length * 304.8; // Corrected: 1ft = 304.8mm
-                const spacingMm = beam.stirrupSpacing * 25.4;
-                const coverMm = COVER_IN * 25.4;
-
-                const adjustedWidth = widthMm - 2 * coverMm;
-                const adjustedDepth = depthMm - 2 * coverMm;
-                const perimeter = 2 * (adjustedWidth + adjustedDepth);
-                const hookLength = 10 * 10; // 10d for 10mm bars
-                const stirrupLength = (perimeter + 2 * hookLength) / 1000; // mm → meters
-                const numberOfStirrups = Math.ceil(lengthMm / spacingMm);
-                const totalStirrupLength = numberOfStirrups * stirrupLength;
-                const stirrupWeight = (100 / 162) * totalStirrupLength; // kg
-
-                totalStirrupSteel += stirrupWeight;
-
-                // Add beam details
-                estimatePage.document.querySelector('#beamSpecifications').innerHTML += `
+                // Add to specs table
+                estimateWindow.document.querySelector('#beamSpecs').innerHTML += `
                     <tr>
                         <td>${beam.name}</td>
                         <td>${beam.width}"×${beam.depth}"</td>
                         <td>${beam.length}ft</td>
                         <td>${beam.mainBars.map(b => `${b.qty}×${b.size}mm`).join(', ')}</td>
                         <td>10mm @ ${beam.stirrupSpacing}"</td>
-                        <td>${beam.extraTopBars.nos * 2}×${beam.extraTopBars.dia}mm (${beam.extraTopBars.length}ft)</td>
-                        <td>${beam.extraBottomBars.nos}×${beam.extraBottomBars.dia}mm (${beam.extraBottomBars.length}ft)</td>
                     </tr>
                 `;
             });
 
-            // Material calculations
-            const cementBags = Math.ceil((totalDryVolume * (1/MIX_RATIO_TOTAL)) / CEMENT_PER_BAG);
-            const sand = (totalDryVolume * (1.5/MIX_RATIO_TOTAL)).toFixed(1);
-            const aggregate = (totalDryVolume * (3/MIX_RATIO_TOTAL)).toFixed(1);
-
-            // Update material summary
-            const materialTable = estimatePage.document.querySelector('#materialSummary');
+            // Material summary
+            const cementBags = Math.ceil(totalConcrete / 1.25);
+            const materialTable = estimateWindow.document.querySelector('#materialSummary');
             materialTable.innerHTML += `
                 <tr><td>Cement Bags (50kg)</td><td>${cementBags}</td></tr>
-                <tr><td>Sand (cft)</td><td>${sand}</td></tr>
-                <tr><td>Aggregate (cft)</td><td>${aggregate}</td></tr>
+                <tr><td>Steel (kg)</td><td>${totalSteel.toFixed(1)}</td></tr>
+                <tr><td>Concrete (cft)</td><td>${totalConcrete.toFixed(1)}</td></tr>
             `;
 
-            // Add steel entries
-            Object.entries(steelBySize).forEach(([size, weight]) => {
-                materialTable.innerHTML += `
-                    <tr><td>${size}</td><td>${weight.toFixed(1)} kg</td></tr>
-                `;
-            });
-
-            materialTable.innerHTML += `
-                <tr class="total-row">
-                    <td>10mm Stirrup Steel</td>
-                    <td>${totalStirrupSteel.toFixed(1)} kg</td>
-                </tr>
-            `;
-
-            estimatePage.document.close();
+            estimateWindow.document.close();
         }
     </script>
 </body>
