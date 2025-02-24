@@ -2,16 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Construction Menu</title>
     <style>
         body {
             font-family: 'Roboto', Arial, sans-serif;
-            margin-bottom: 15px;
+            margin: 0;
             padding: 0;
             background: #121212;
             color: #ffffff;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -22,13 +22,14 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 100%;
+            width: 90%;
             max-width: 400px;
             background: #1e1e1e;
             border-radius: 15px;
             box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5);
             overflow: hidden;
             padding: 20px 0;
+            margin: 20px 0;
         }
 
         .menu {
@@ -48,9 +49,10 @@
             border-radius: 10px;
             background: #242424;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
-        .menu-item:hover {
+        .menu-item:hover, .menu-item:focus {
             background: #333333;
             color: #4caf50;
             transform: scale(1.05);
@@ -73,12 +75,17 @@
             text-align: center;
             color: rgba(255, 255, 255, 0.7);
             font-size: 14px;
+            padding: 10px;
         }
 
         @media (max-width: 600px) {
             .menu-item {
                 font-size: 16px;
                 padding: 12px;
+            }
+
+            header {
+                font-size: 20px;
             }
         }
     </style>
@@ -87,18 +94,18 @@
     <header>Construction Menu</header>
     <div class="container">
         <div class="menu">
-            <a href="https://hybridcivilbd.github.io/engineeringapp/colindex.html" class="menu-item">Column</a>
-            <a href="https://hybridcivilbd.github.io/engineeringapp/loadrelease1.html" class="menu-item">Footing</a>
-            <a href="https://hybridcivilbd.github.io/engineeringapp/loadrelease.html" class="menu-item">Load Release</a>
-            <a href="https://hybridcivilbd.github.io/engineeringapp/gradebeam.html" class="menu-item">Grade Beam</a>
-            <a href="https://hybridcivilbd.github.io/engineeringapp/slab.html" class="menu-item">Slab</a>
-            <a href="https://hybridcivilbd.github.io/engineeringapp/loadofacolumn.html" class="menu-item">Load of a Column</a>
-            <a href="https://hybridcivilbd.github.io/engineeringapp/moduluscalculation.html" class="menu-item">Modulus</a>
-            <a href="https://hybridcivilbd.github.io/engineeringapp/bmdsfd.html" class="menu-item">BMDSFD</a>
-            <a href="https://hybridcivilbd.github.io/engineeringapp/pilecapacity1.html" class="menu-item">Pile Capacity</a>
-            <a href="https://hybridcivilbd.github.io/engineeringapp/estimate007.html" class="menu-item">Column Estimate</a>
-            <a href="https://hybridcivilbd.github.io/engineeringapp/estimatefoot.html" class="menu-item">Footing Estimate</a>
-            <a href="https://hybridcivilbd.github.io/engineeringapp/estimatebeam.html" class="menu-item">Beam Estimate</a>
+            <a href="https://hybridcivilbd.github.io/engineeringapp/colindex.html" class="menu-item" aria-label="Column">Column</a>
+            <a href="https://hybridcivilbd.github.io/engineeringapp/loadrelease1.html" class="menu-item" aria-label="Footing">Footing</a>
+            <a href="https://hybridcivilbd.github.io/engineeringapp/loadrelease.html" class="menu-item" aria-label="Load Release">Load Release</a>
+            <a href="https://hybridcivilbd.github.io/engineeringapp/gradebeam.html" class="menu-item" aria-label="Grade Beam">Grade Beam</a>
+            <a href="https://hybridcivilbd.github.io/engineeringapp/slab.html" class="menu-item" aria-label="Slab">Slab</a>
+            <a href="https://hybridcivilbd.github.io/engineeringapp/loadofacolumn.html" class="menu-item" aria-label="Load of a Column">Load of a Column</a>
+            <a href="https://hybridcivilbd.github.io/engineeringapp/moduluscalculation.html" class="menu-item" aria-label="Modulus">Modulus</a>
+            <a href="https://hybridcivilbd.github.io/engineeringapp/bmdsfd.html" class="menu-item" aria-label="BMDSFD">BMDSFD</a>
+            <a href="https://hybridcivilbd.github.io/engineeringapp/pilecapacity1.html" class="menu-item" aria-label="Pile Capacity">Pile Capacity</a>
+            <a href="https://hybridcivilbd.github.io/engineeringapp/estimate007.html" class="menu-item" aria-label="Column Estimate">Column Estimate</a>
+            <a href="https://hybridcivilbd.github.io/engineeringapp/estimatefoot.html" class="menu-item" aria-label="Footing Estimate">Footing Estimate</a>
+            <a href="https://hybridcivilbd.github.io/engineeringapp/estimatebeam.html" class="menu-item" aria-label="Beam Estimate">Beam Estimate</a>
         </div>
     </div>
     <footer>
