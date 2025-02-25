@@ -99,6 +99,9 @@
     <label for="spiralSpacing">Spiral Spacing (inches):</label>
     <input type="number" id="spiralSpacing" placeholder="Enter spiral spacing">
 
+    <label for="constructionCostPerFoot">Pile Construction Cost (TK per running foot):</label>
+    <input type="number" id="constructionCostPerFoot" placeholder="Enter construction cost per foot">
+
     <label for="cementCost">Cement Cost (TK per bag):</label>
     <input type="number" id="cementCost" placeholder="Enter cement cost">
 
@@ -133,13 +136,13 @@
       const barSize = parseFloat(document.getElementById('barSize').value);
       const barNos = parseFloat(document.getElementById('barNos').value);
       const spiralSpacing = parseFloat(document.getElementById('spiralSpacing').value);
+      const constructionCostPerFoot = parseFloat(document.getElementById('constructionCostPerFoot').value);
       const cementCost = parseFloat(document.getElementById('cementCost').value);
       const sandCost = parseFloat(document.getElementById('sandCost').value);
       const aggregateCost = parseFloat(document.getElementById('aggregateCost').value);
       const steelCost = parseFloat(document.getElementById('steelCost').value);
 
       // Constants
-      const constructionCostPerFoot = 150; // TK per running foot
       const cementBagsPerPile = 16; // From previous calculation
       const sandVolumePerPile = 38.88; // CFT
       const aggregateVolumePerPile = 77.76; // CFT
