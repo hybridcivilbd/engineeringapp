@@ -45,12 +45,12 @@
             <input type="number" id="pileDiameter" value="18">
         </div>
         <div class="input-group">
-            <label for="numberOfBars">Number of Steel Bars:</label>
+            <label for="numberOfBars">Number of Steel Bars (16mm):</label>
             <input type="number" id="numberOfBars" value="6">
         </div>
         <div class="input-group">
-            <label for="steelDiameter">Steel Diameter (mm):</label>
-            <input type="number" id="steelDiameter" value="16">
+            <label for="spiralBarDiameter">Spiral Bar Diameter (10mm):</label>
+            <input type="number" id="spiralBarDiameter" value="10" readonly>
         </div>
         <div class="input-group">
             <label for="stirrupSpacing">Stirrup Spacing (inch):</label>
@@ -90,7 +90,7 @@
             const pileLength = parseFloat(document.getElementById('pileLength').value);
             const pileDiameter = parseFloat(document.getElementById('pileDiameter').value);
             const numberOfBars = parseFloat(document.getElementById('numberOfBars').value);
-            const steelDiameter = parseFloat(document.getElementById('steelDiameter').value);
+            const spiralBarDiameter = parseFloat(document.getElementById('spiralBarDiameter').value);
             const stirrupSpacing = parseFloat(document.getElementById('stirrupSpacing').value);
             const numberOfPiles = parseFloat(document.getElementById('numberOfPiles').value);
             const pileRunningCost = parseFloat(document.getElementById('pileRunningCost').value);
@@ -101,39 +101,55 @@
 
             // Constants
             const clearCover = 3; // inches
-            const lappingLength = 40 * steelDiameter / 1000; // 40d lapping in meters
+            const lappingLength = 40 * 16 / 1000; // 40d lapping for 16mm bars in meters
             const concreteRatio = [1, 1.5, 3]; // Cement:Sand:Aggregate
             const steelDensity = 7850; // kg/m^3
             const cementDensity = 1440; // kg/m^3
             const bagWeight = 50; // kg per bag
+            const spiralBarLengthPerLoop = Math.PI * (pileDiameter - 2 * clearCover) / 12; // Spiral length per loop in feet
 
             // Calculations
-            const pileRadius = (pileDiameter / 2) * 0.0254; // Convert inches to meters
-            const pileVolume = Math.PI * Math.pow(pileRadius, 2) * pileLength * 0.3048; // Convert feet to meters
-            const steelVolume = numberOfBars * Math.PI * Math.pow(steelDiameter / 1000 / 2, 2) * (pileLength * 0.3048 + lappingLength);
-            const steelWeight = steelVolume * steelDensity;
-            const steelCost = steelWeight * steelRate;
+            const pileRadius = (pileDiameter / 2) * 0.0833; // Convert inches to feet
+            const pileVolume = Math.PI * Math.pow(pileRadius, 2) * pileLength; // Volume in cft
+            const totalConcreteVolume = pileVolume * numberOfPiles; // Total concrete volume in cft
 
-            const totalConcreteVolume = pileVolume * numberOfPiles;
+            // Steel calculations (16mm bars)
+            const steelVolume16mm = numberOfBars * Math.PI * Math.pow(16 / 1000 / 2, 2) * (pileLength * 0.3048 + lappingLength); // Volume in m³
+            const steelWeight16mm = steelVolume16mm * steelDensity; // Weight in kg
+            const steelCost16mm = steelWeight16mm * steelRate;
+
+            // Spiral bar calculations (10mm bars)
+            const numberOfSpiralLoops = (pileLength * 12) / stirrupSpacing; // Number of loops
+            const spiralBarLength = spiralBarLengthPerLoop * numberOfSpiralLoops; // Total length in feet
+            const spiralBarVolume = Math.PI * Math.pow(10 / 1000 / 2, 2) * (spiralBarLength * 0.3048); // Volume in m³
+            const spiralBarWeight = spiralBarVolume * steelDensity; // Weight in kg
+            const spiralBarCost = spiralBarWeight * steelRate;
+
+            // Total steel cost
+            const totalSteelCost = steelCost16mm + spiralBarCost;
+
+            // Concrete calculations
             const cementVolume = (concreteRatio[0] / (concreteRatio[0] + concreteRatio[1] + concreteRatio[2])) * totalConcreteVolume;
             const sandVolume = (concreteRatio[1] / (concreteRatio[0] + concreteRatio[1] + concreteRatio[2])) * totalConcreteVolume;
             const aggregateVolume = (concreteRatio[2] / (concreteRatio[0] + concreteRatio[1] + concreteRatio[2])) * totalConcreteVolume;
 
             const cementBags = (cementVolume * cementDensity) / bagWeight;
             const cementCost = cementBags * cementRate;
-            const sandCost = sandVolume * 35.3147 * sandRate; // Convert m^3 to cft
-            const aggregateCost = aggregateVolume * 35.3147 * aggregateRate; // Convert m^3 to cft
+            const sandCost = sandVolume * sandRate;
+            const aggregateCost = aggregateVolume * aggregateRate;
 
             const concreteWetVolume = totalConcreteVolume;
             const concreteDryVolume = totalConcreteVolume * 1.54; // Dry volume = Wet volume * 1.54
             const pileTotalLength = pileLength * numberOfPiles;
             const pileCost = pileTotalLength * pileRunningCost;
 
-            const totalCost = steelCost + cementCost + sandCost + aggregateCost + pileCost;
+            const totalCost = totalSteelCost + cementCost + sandCost + aggregateCost + pileCost;
 
             // Output
             document.getElementById('output').innerHTML = `
-                <p><strong>Total Steel Cost:</strong> ${steelCost.toFixed(2)} TK</p>
+                <p><strong>Total Steel Cost (16mm):</strong> ${steelCost16mm.toFixed(2)} TK</p>
+                <p><strong>Total Steel Cost (10mm Spiral):</strong> ${spiralBarCost.toFixed(2)} TK</p>
+                <p><strong>Total Steel Cost:</strong> ${totalSteelCost.toFixed(2)} TK</p>
                 <p><strong>Total Cement Cost:</strong> ${cementCost.toFixed(2)} TK</p>
                 <p><strong>Total Sand Cost:</strong> ${sandCost.toFixed(2)} TK</p>
                 <p><strong>Total Aggregate Cost:</strong> ${aggregateCost.toFixed(2)} TK</p>
@@ -141,11 +157,13 @@
                 <p><strong>Total Construction Cost:</strong> ${totalCost.toFixed(2)} TK</p>
                 <hr>
                 <p><strong>Cement Bags:</strong> ${cementBags.toFixed(2)} bags</p>
-                <p><strong>Sand Volume:</strong> ${(sandVolume * 35.3147).toFixed(2)} cft</p>
-                <p><strong>Aggregate Volume:</strong> ${(aggregateVolume * 35.3147).toFixed(2)} cft</p>
-                <p><strong>Concrete Wet Volume:</strong> ${concreteWetVolume.toFixed(2)} m³</p>
-                <p><strong>Concrete Dry Volume:</strong> ${concreteDryVolume.toFixed(2)} m³</p>
+                <p><strong>Sand Volume:</strong> ${sandVolume.toFixed(2)} cft</p>
+                <p><strong>Aggregate Volume:</strong> ${aggregateVolume.toFixed(2)} cft</p>
+                <p><strong>Concrete Wet Volume:</strong> ${concreteWetVolume.toFixed(2)} cft</p>
+                <p><strong>Concrete Dry Volume:</strong> ${concreteDryVolume.toFixed(2)} cft</p>
                 <p><strong>Pile Total Length:</strong> ${pileTotalLength.toFixed(2)} feet</p>
+                <p><strong>16mm Bar Weight:</strong> ${steelWeight16mm.toFixed(2)} kg</p>
+                <p><strong>10mm Spiral Bar Weight:</strong> ${spiralBarWeight.toFixed(2)} kg</p>
             `;
         }
     </script>
