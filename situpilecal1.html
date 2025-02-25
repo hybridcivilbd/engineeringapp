@@ -166,7 +166,7 @@
       const cementBagsPerPile = cementVolumePerPile / 1.226; // 1 bag = 1.226 CFT
 
       // Steel calculations
-      const lappingLength = 50 * (barSize / 1000); // 50d in meters
+      const lappingLength = pileLength > 12 ? (50 * (barSize / 1000)) : 0; // Only add lapping for long piles
       const totalBarLength = (pileLength * 0.3048) + lappingLength; // Convert feet to meters
       const weightPerMeter = (barSize * barSize) / 162; // kg/m
       const steelWeightPerPile = barNos * totalBarLength * weightPerMeter;
