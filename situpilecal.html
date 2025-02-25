@@ -53,6 +53,18 @@
             <input type="number" id="steelDiameter" value="16">
         </div>
         <div class="input-group">
+            <label for="stirrupSpacing">Stirrup Spacing (inch):</label>
+            <input type="number" id="stirrupSpacing" value="5">
+        </div>
+        <div class="input-group">
+            <label for="numberOfPiles">Number of Piles:</label>
+            <input type="number" id="numberOfPiles" value="1">
+        </div>
+        <div class="input-group">
+            <label for="pileRunningCost">Pile Per Running Feet Cost (TK):</label>
+            <input type="number" id="pileRunningCost" value="150">
+        </div>
+        <div class="input-group">
             <label for="steelRate">Steel Rate (TK/kg):</label>
             <input type="number" id="steelRate" value="90">
         </div>
@@ -74,10 +86,14 @@
 
     <script>
         function calculateCost() {
+            // Input values
             const pileLength = parseFloat(document.getElementById('pileLength').value);
             const pileDiameter = parseFloat(document.getElementById('pileDiameter').value);
             const numberOfBars = parseFloat(document.getElementById('numberOfBars').value);
             const steelDiameter = parseFloat(document.getElementById('steelDiameter').value);
+            const stirrupSpacing = parseFloat(document.getElementById('stirrupSpacing').value);
+            const numberOfPiles = parseFloat(document.getElementById('numberOfPiles').value);
+            const pileRunningCost = parseFloat(document.getElementById('pileRunningCost').value);
             const steelRate = parseFloat(document.getElementById('steelRate').value);
             const cementRate = parseFloat(document.getElementById('cementRate').value);
             const sandRate = parseFloat(document.getElementById('sandRate').value);
@@ -85,10 +101,11 @@
 
             // Constants
             const clearCover = 3; // inches
-            const stirrupSpacing = 5; // inches
             const lappingLength = 40 * steelDiameter / 1000; // 40d lapping in meters
             const concreteRatio = [1, 1.5, 3]; // Cement:Sand:Aggregate
             const steelDensity = 7850; // kg/m^3
+            const cementDensity = 1440; // kg/m^3
+            const bagWeight = 50; // kg per bag
 
             // Calculations
             const pileRadius = (pileDiameter / 2) * 0.0254; // Convert inches to meters
@@ -97,17 +114,22 @@
             const steelWeight = steelVolume * steelDensity;
             const steelCost = steelWeight * steelRate;
 
-            const totalConcreteVolume = pileVolume;
+            const totalConcreteVolume = pileVolume * numberOfPiles;
             const cementVolume = (concreteRatio[0] / (concreteRatio[0] + concreteRatio[1] + concreteRatio[2])) * totalConcreteVolume;
             const sandVolume = (concreteRatio[1] / (concreteRatio[0] + concreteRatio[1] + concreteRatio[2])) * totalConcreteVolume;
             const aggregateVolume = (concreteRatio[2] / (concreteRatio[0] + concreteRatio[1] + concreteRatio[2])) * totalConcreteVolume;
 
-            const cementBags = cementVolume * 1440 / 50; // 1 bag = 50 kg, density of cement = 1440 kg/m^3
+            const cementBags = (cementVolume * cementDensity) / bagWeight;
             const cementCost = cementBags * cementRate;
             const sandCost = sandVolume * 35.3147 * sandRate; // Convert m^3 to cft
             const aggregateCost = aggregateVolume * 35.3147 * aggregateRate; // Convert m^3 to cft
 
-            const totalCost = steelCost + cementCost + sandCost + aggregateCost;
+            const concreteWetVolume = totalConcreteVolume;
+            const concreteDryVolume = totalConcreteVolume * 1.54; // Dry volume = Wet volume * 1.54
+            const pileTotalLength = pileLength * numberOfPiles;
+            const pileCost = pileTotalLength * pileRunningCost;
+
+            const totalCost = steelCost + cementCost + sandCost + aggregateCost + pileCost;
 
             // Output
             document.getElementById('output').innerHTML = `
@@ -115,7 +137,15 @@
                 <p><strong>Total Cement Cost:</strong> ${cementCost.toFixed(2)} TK</p>
                 <p><strong>Total Sand Cost:</strong> ${sandCost.toFixed(2)} TK</p>
                 <p><strong>Total Aggregate Cost:</strong> ${aggregateCost.toFixed(2)} TK</p>
+                <p><strong>Pile Cost:</strong> ${pileCost.toFixed(2)} TK</p>
                 <p><strong>Total Construction Cost:</strong> ${totalCost.toFixed(2)} TK</p>
+                <hr>
+                <p><strong>Cement Bags:</strong> ${cementBags.toFixed(2)} bags</p>
+                <p><strong>Sand Volume:</strong> ${(sandVolume * 35.3147).toFixed(2)} cft</p>
+                <p><strong>Aggregate Volume:</strong> ${(aggregateVolume * 35.3147).toFixed(2)} cft</p>
+                <p><strong>Concrete Wet Volume:</strong> ${concreteWetVolume.toFixed(2)} m³</p>
+                <p><strong>Concrete Dry Volume:</strong> ${concreteDryVolume.toFixed(2)} m³</p>
+                <p><strong>Pile Total Length:</strong> ${pileTotalLength.toFixed(2)} feet</p>
             `;
         }
     </script>
