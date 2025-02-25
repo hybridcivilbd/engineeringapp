@@ -138,7 +138,7 @@
     </div>
   </div>
 
-  <script>
+<script>
     function calculateCost() {
       // Input values
       const pileNos = parseFloat(document.getElementById('pileNos').value);
@@ -153,39 +153,39 @@
       const aggregateCost = parseFloat(document.getElementById('aggregateCost').value);
       const steelCost = parseFloat(document.getElementById('steelCost').value);
 
-      // Constants
-      const cementBagsPerPile = 16; // From previous calculation
-      const sandVolumePerPile = 38.88; // CFT
-      const aggregateVolumePerPile = 77.76; // CFT
-
-      // Calculations for concrete volumes
+      // Concrete calculations
       const pileRadius = (pileDiameter / 2) / 12; // Convert inches to feet
       const wetVolumePerPile = Math.PI * Math.pow(pileRadius, 2) * pileLength;
-      const dryVolumePerPile = wetVolumePerPile * 1.54; // Dry volume is 1.54 times wet volume
+      const dryVolumePerPile = wetVolumePerPile * 1.54;
 
-      // Calculations for steel weight
+      // Material calculations (1:2:4 mix ratio)
+      const mixTotal = 7; // 1+2+4
+      const cementVolumePerPile = (dryVolumePerPile / mixTotal) * 1;
+      const sandVolumePerPile = (dryVolumePerPile / mixTotal) * 2;
+      const aggregateVolumePerPile = (dryVolumePerPile / mixTotal) * 4;
+      const cementBagsPerPile = cementVolumePerPile / 1.226; // 1 bag = 1.226 CFT
+
+      // Steel calculations
       const lappingLength = 50 * (barSize / 1000); // 50d in meters
       const totalBarLength = (pileLength * 0.3048) + lappingLength; // Convert feet to meters
-      const weightPerMeter = (barSize * barSize) / 162; // Weight of steel per meter (kg/m)
+      const weightPerMeter = (barSize * barSize) / 162; // kg/m
       const steelWeightPerPile = barNos * totalBarLength * weightPerMeter;
 
-      // Spiral calculations
+      // Spiral calculations (assuming 8mm spiral)
       const pileCircumference = Math.PI * (pileDiameter * 0.0254); // Convert inches to meters
-      const spiralLengthPerLoop = pileCircumference + (50 * (8 / 1000)); // 8mm spiral with 50d lapping
-      const totalSpirals = (pileLength * 12) / spiralSpacing; // Convert feet to inches and divide by spacing
-      const spiralWeightPerPile = totalSpirals * spiralLengthPerLoop * 0.395; // 8mm bar weight (0.395 kg/m)
+      const spiralLengthPerLoop = pileCircumference + (50 * (8 / 1000)); // 50d lapping
+      const totalSpirals = (pileLength * 12) / spiralSpacing; // Total loops
+      const spiralWeightPerPile = totalSpirals * spiralLengthPerLoop * 0.395; // 8mm bar weight
 
-      // Total steel weight
+      // Totals
       const totalSteelWeight = (steelWeightPerPile + spiralWeightPerPile) * pileNos;
-
-      // Total material quantities
       const totalCementBags = cementBagsPerPile * pileNos;
       const totalSandVolume = sandVolumePerPile * pileNos;
       const totalAggregateVolume = aggregateVolumePerPile * pileNos;
       const totalWetVolume = wetVolumePerPile * pileNos;
       const totalDryVolume = dryVolumePerPile * pileNos;
 
-      // Total costs
+      // Cost calculations
       const constructionCost = pileLength * constructionCostPerFoot * pileNos;
       const cementCostTotal = totalCementBags * cementCost;
       const sandCostTotal = totalSandVolume * sandCost;
@@ -210,6 +210,6 @@
       document.getElementById('mainBarWeight').innerText = `Main Bar Weight: ${(steelWeightPerPile * pileNos).toFixed(2)} kg`;
       document.getElementById('spiralWeight').innerText = `Spiral Weight: ${(spiralWeightPerPile * pileNos).toFixed(2)} kg`;
     }
-  </script>
+</script>
 </body>
 </html>
