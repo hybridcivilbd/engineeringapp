@@ -81,11 +81,23 @@
 <body>
   <div class="calculator">
     <h2>Pile Construction Cost Calculator</h2>
+    <label for="pileNos">Number of Piles:</label>
+    <input type="number" id="pileNos" placeholder="Enter number of piles">
+
     <label for="pileLength">Pile Length (feet):</label>
     <input type="number" id="pileLength" placeholder="Enter pile length">
 
     <label for="pileDiameter">Pile Diameter (inches):</label>
     <input type="number" id="pileDiameter" placeholder="Enter pile diameter">
+
+    <label for="barSize">Bar Size (mm):</label>
+    <input type="number" id="barSize" placeholder="Enter bar size">
+
+    <label for="barNos">Number of Bars:</label>
+    <input type="number" id="barNos" placeholder="Enter number of bars">
+
+    <label for="spiralSpacing">Spiral Spacing (inches):</label>
+    <input type="number" id="spiralSpacing" placeholder="Enter spiral spacing">
 
     <label for="cementCost">Cement Cost (TK per bag):</label>
     <input type="number" id="cementCost" placeholder="Enter cement cost">
@@ -115,8 +127,12 @@
   <script>
     function calculateCost() {
       // Input values
+      const pileNos = parseFloat(document.getElementById('pileNos').value);
       const pileLength = parseFloat(document.getElementById('pileLength').value);
       const pileDiameter = parseFloat(document.getElementById('pileDiameter').value);
+      const barSize = parseFloat(document.getElementById('barSize').value);
+      const barNos = parseFloat(document.getElementById('barNos').value);
+      const spiralSpacing = parseFloat(document.getElementById('spiralSpacing').value);
       const cementCost = parseFloat(document.getElementById('cementCost').value);
       const sandCost = parseFloat(document.getElementById('sandCost').value);
       const aggregateCost = parseFloat(document.getElementById('aggregateCost').value);
@@ -124,17 +140,36 @@
 
       // Constants
       const constructionCostPerFoot = 150; // TK per running foot
-      const cementBags = 16; // From previous calculation
-      const sandVolume = 38.88; // CFT
-      const aggregateVolume = 77.76; // CFT
-      const steelWeight = 239.04; // kg
+      const cementBagsPerPile = 16; // From previous calculation
+      const sandVolumePerPile = 38.88; // CFT
+      const aggregateVolumePerPile = 77.76; // CFT
 
-      // Calculations
-      const constructionCost = pileLength * constructionCostPerFoot;
-      const cementCostTotal = cementBags * cementCost;
-      const sandCostTotal = sandVolume * sandCost;
-      const aggregateCostTotal = aggregateVolume * aggregateCost;
-      const steelCostTotal = steelWeight * steelCost;
+      // Calculations for steel weight
+      const lappingLength = 50 * (barSize / 1000); // 50d in meters
+      const totalBarLength = (pileLength * 0.3048) + lappingLength; // Convert feet to meters
+      const weightPerMeter = (barSize * barSize) / 162; // Weight of steel per meter (kg/m)
+      const steelWeightPerPile = barNos * totalBarLength * weightPerMeter;
+
+      // Spiral calculations
+      const pileCircumference = Math.PI * (pileDiameter * 0.0254); // Convert inches to meters
+      const spiralLengthPerLoop = pileCircumference + (50 * (8 / 1000)); // 8mm spiral with 50d lapping
+      const totalSpirals = (pileLength * 12) / spiralSpacing; // Convert feet to inches and divide by spacing
+      const spiralWeightPerPile = totalSpirals * spiralLengthPerLoop * 0.395; // 8mm bar weight (0.395 kg/m)
+
+      // Total steel weight
+      const totalSteelWeight = (steelWeightPerPile + spiralWeightPerPile) * pileNos;
+
+      // Total material quantities
+      const totalCementBags = cementBagsPerPile * pileNos;
+      const totalSandVolume = sandVolumePerPile * pileNos;
+      const totalAggregateVolume = aggregateVolumePerPile * pileNos;
+
+      // Total costs
+      const constructionCost = pileLength * constructionCostPerFoot * pileNos;
+      const cementCostTotal = totalCementBags * cementCost;
+      const sandCostTotal = totalSandVolume * sandCost;
+      const aggregateCostTotal = totalAggregateVolume * aggregateCost;
+      const steelCostTotal = totalSteelWeight * steelCost;
       const totalCost = constructionCost + cementCostTotal + sandCostTotal + aggregateCostTotal + steelCostTotal;
 
       // Display results
