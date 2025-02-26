@@ -52,13 +52,13 @@
     <div class="container">
         <h2>Concrete Volume Calculator</h2>
         
-        <label>Length (inches)</label>
+        <label>Length (feet)</label>
         <input type="number" id="length" placeholder="Enter length in inches" oninput="convertToFeet(this)">
         
-        <label>Width (inches)</label>
+        <label>Width (feet)</label>
         <input type="number" id="width" placeholder="Enter width in inches" oninput="convertToFeet(this)">
         
-        <label>Height (inches)</label>
+        <label>Height (feet)</label>
         <input type="number" id="height" placeholder="Enter height in inches" oninput="convertToFeet(this)">
         
         <label>Steel Percentage (%)</label>
@@ -86,9 +86,10 @@
     
     <script>
         function convertToFeet(input) {
-            let value = parseFloat(input.value);
-            if (!isNaN(value)) {
-                input.value = (value / 12).toFixed(2); // Convert inches to feet
+            let inches = parseFloat(input.value);
+            if (!isNaN(inches)) {
+                let feet = (inches / 12).toFixed(2); // Convert inches to feet
+                input.value = feet; // Update input field with feet value
             }
         }
 
