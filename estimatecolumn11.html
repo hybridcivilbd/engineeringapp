@@ -1,1 +1,352 @@
-estimate
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Column Rebar Input</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 90%;
+            width: 400px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .rebar-container {
+            margin-bottom: 20px;
+        }
+        .rebar-input {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+            gap: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Column Input</h2>
+        <label>Column Name:</label>
+        <input type="text" id="columnName" placeholder="Enter column name" required>
+        
+        <label>Column Size X (in):</label>
+        <input type="number" id="columnX" placeholder="Enter size X" required>
+        
+        <label>Column Size Y (in):</label>
+        <input type="number" id="columnY" placeholder="Enter size Y" required>
+        
+        <label>Column Height (ft):</label>
+        <input type="number" id="columnHeight" placeholder="Enter height" required>
+
+        <label>Number of Columns:</label>
+        <input type="number" id="columnNos" placeholder="Enter number of columns" required>
+        
+        <div class="rebar-container" id="rebarContainer">
+            <div class="rebar-input">
+                <button type="button" onclick="addRebarField()">+</button>
+                <button type="button" onclick="removeRebarField(this)">-</button>
+                <input type="number" class="barDia" placeholder="Column Bar Size (mm)" required>
+                <input type="number" class="barNos" placeholder="Nos." required>
+            </div>
+        </div>
+        
+        <button onclick="addColumn()">Add Column</button>
+        
+        <h3>Column List</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Column Nos</th>
+                    <th>Name</th>
+                    <th>Size (in)</th>
+                    <th>Height (ft)</th>
+                    <th>Rebars</th>
+                </tr>
+            </thead>
+            <tbody id="columnList"></tbody>
+        </table>
+
+        <button onclick="showEstimate()">Estimate</button>
+    </div>
+
+    <script>
+        function addRebarField() {
+            let container = document.getElementById("rebarContainer");
+            let div = document.createElement("div");
+            div.classList.add("rebar-input");
+            div.innerHTML = `
+                <button type="button" onclick="addRebarField()">+</button>
+                <button type="button" onclick="removeRebarField(this)">-</button>
+                <input type="number" class="barDia" placeholder="Column Bar Size (mm)" required>
+                <input type="number" class="barNos" placeholder="Nos." required>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeRebarField(button) {
+            let container = document.getElementById("rebarContainer");
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
+
+        function addColumn() {
+            let columnName = document.getElementById("columnName").value;
+            let columnX = document.getElementById("columnX").value;
+            let columnY = document.getElementById("columnY").value;
+            let columnHeight = document.getElementById("columnHeight").value;
+            let columnNos = document.getElementById("columnNos").value;
+            let rebars = document.querySelectorAll(".rebar-input");
+            let rebarDetails = [];
+            
+            rebars.forEach((rebar, index) => {
+                let barDia = rebar.querySelector(".barDia").value;
+                let barNos = rebar.querySelector(".barNos").value;
+                rebarDetails.push(`Rebar ${index + 1}: ${barNos} bars of ${barDia}mm`);
+            });
+
+            let columnList = document.getElementById("columnList");
+            let row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${columnNos}</td>
+                <td>${columnName}</td>
+                <td>${columnX}x${columnY}</td>
+                <td>${columnHeight}</td>
+                <td>${rebarDetails.join("<br>")}</td>
+            `;
+            columnList.appendChild(row);
+
+            document.getElementById("columnName").value = "";
+            document.getElementById("columnX").value = "";
+            document.getElementById("columnY").value = "";
+            document.getElementById("columnHeight").value = "";
+            document.getElementById("columnNos").value = "";
+            document.getElementById("rebarContainer").innerHTML = `
+                <div class="rebar-input">
+                    <button type="button" onclick="addRebarField()">+</button>
+                    <button type="button" onclick="removeRebarField(this)">-</button>
+                    <input type="number" class="barDia" placeholder="Column Bar Size (mm)" required>
+                    <input type="number" class="barNos" placeholder="Nos." required>
+                </div>
+            `;
+        }
+
+function showEstimate() {
+    const columns = Array.from(document.querySelectorAll("#columnList tr"));
+    const estimateData = columns.map(row => {
+        const cells = row.querySelectorAll("td");
+        return {
+            columnNos: parseInt(cells[0].innerText),
+            name: cells[1].innerText,
+            size: cells[2].innerText,
+            height: parseFloat(cells[3].innerText),
+            rebars: cells[4].innerHTML.replace(/<br>/g, "\n")
+        };
+    });
+
+    // Always recreate a fresh estimate window
+    const estimateWindow = window.open("", "_blank");
+
+    estimateWindow.document.write(`
+        <html>
+            <head>
+                <title>Column Estimate Details</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 0;
+                        padding: 20px;
+                        background-color: #f8f9fa;
+                        color: #333;
+                    }
+                    h1 {
+                        text-align: center;
+                        color: #0056b3;
+                        font-size: 24px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 20px;
+                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                    }
+                    th, td {
+                        padding: 12px 15px;
+                        text-align: left;
+                        border: 1px solid #ddd;
+                    }
+                    th {
+                        background-color: #007bff;
+                        color: white;
+                        text-align: center;
+                    }
+                    tr:nth-child(even) {
+                        background-color: #f2f2f2;
+                    }
+                    tr:hover {
+                        background-color: #ddd;
+                    }
+                    .details {
+                        font-size: 14px;
+                        color: #555;
+                    }
+                    @media (max-width: 768px) {
+                        h1 {
+                            font-size: 20px;
+                        }
+                        table, th, td {
+                            font-size: 12px;
+                        }
+                        th, td {
+                            padding: 8px 10px;
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        table {
+                            display: block;
+                            overflow-x: auto;
+                            white-space: nowrap;
+                        }
+                        th, td {
+                            display: block;
+                            text-align: left;
+                        }
+                        th {
+                            background-color: #0056b3;
+                        }
+                        tr {
+                            margin-bottom: 10px;
+                            display: block;
+                            border-bottom: 1px solid #ddd;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>Column Estimate Details</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Column Nos</th>
+                            <th>Name</th>
+                            <th>Size</th>
+                            <th>Height (ft)</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `);
+
+    estimateData.forEach(data => {
+        const heightInFeet = data.height;
+        const columnX = parseFloat(data.size.split('x')[0]);
+        const columnY = parseFloat(data.size.split('x')[1]);
+
+        const wetVolume = (heightInFeet * columnX * columnY) / 144; // ft³
+        const totalWetVolume = wetVolume * data.columnNos;
+        const dryVolume = totalWetVolume * 1.54; // ft³
+
+        const totalParts = 1 + 1.5 + 3;
+        const cementVolume = (1 / totalParts) * dryVolume;
+        const sandVolume = (1.5 / totalParts) * dryVolume;
+        const aggregateVolume = (3 / totalParts) * dryVolume;
+
+        const cementBags = Math.ceil(cementVolume / 1.25);
+        const sandCft = Math.ceil(sandVolume);
+        const aggregateCft = Math.ceil(aggregateVolume);
+
+        let barDetails = "";
+        data.rebars.split("\n").forEach(rebar => {
+            const match = rebar.match(/(\d+) bars of (\d+)mm/);
+            if (match) {
+                const nos = parseInt(match[1]);
+                const dia = parseInt(match[2]);
+                const weightPerFoot = (dia * dia) / 533; // kg/ft
+                const weight = (weightPerFoot * heightInFeet * nos * data.columnNos).toFixed(2);
+                barDetails += `${nos} bars of ${dia}mm: ${weight} kg\n`;
+            }
+        });
+
+const clearCover = 1.5; // inches
+const stirrupDia = 10; // mm
+const stirrupSpacing = 5; // inches c/c
+
+// Adjusted stirrup length with clear cover and extra 6 inches
+const stirrupLength = 2 * (columnX - 2 * clearCover) + 2 * (columnY - 2 * clearCover) + 6; 
+const stirrupLengthFeet = stirrupLength / 12; // Convert to feet
+
+const numberOfStirrups = Math.ceil((heightInFeet * 12) / stirrupSpacing) * data.columnNos;
+const stirrupWeightPerFoot = (stirrupDia * stirrupDia) / 533; // kg/ft
+const stirrupWeight = (stirrupWeightPerFoot * stirrupLengthFeet * numberOfStirrups).toFixed(2);
+
+barDetails += `Stirrups: ${numberOfStirrups} stirrups of ${stirrupDia}mm: ${stirrupWeight} kg\n`;
+
+
+        estimateWindow.document.write(`
+            <tr>
+                <td>${data.columnNos}</td>
+                <td>${data.name}</td>
+                <td>${data.size}</td>
+                <td>${data.height.toFixed(2)}</td>
+                <td class="details">
+                    Cement: ${cementBags} bags (50 kg)<br>
+                    Sand: ${sandCft} cft<br>
+                    Aggregate: ${aggregateCft} cft<br>
+                    Bars:<br>${barDetails.replace(/\n/g, "<br>")}
+                </td>
+            </tr>
+        `);
+    });
+
+    estimateWindow.document.write(`
+                    </tbody>
+                </table>
+            </body>
+        </html>
+    `);
+
+    estimateWindow.document.close();
+}
+
+    </script>
+</body>
+</html>
