@@ -15,7 +15,7 @@
             text-align: center;
         }
         .container {
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
             background-color: #fff;
             padding: 20px;
@@ -57,7 +57,7 @@
             <option value="biaxial">Bi-axial Column</option>
         </select>
 
-        <!-- Input Fields -->
+        <!-- Axial Column Fields -->
         <div id="axialFields">
             <label for="columnWidth">Column Width (in inches)</label>
             <input type="number" id="columnWidth" placeholder="Enter column width" required>
@@ -67,24 +67,36 @@
 
             <label for="rebarCount">Number of 16mm Rebars</label>
             <input type="number" id="rebarCount" placeholder="Enter number of rebars" required>
+
+            <label for="concreteStrength">Concrete Strength (in psi)</label>
+            <input type="number" id="concreteStrength" placeholder="Enter concrete strength" required>
         </div>
 
-        <!-- Uni-axial Fields -->
+        <!-- Uni-axial Column Fields -->
         <div id="uniaxialFields" style="display: none;">
             <label for="eccentricity">Eccentricity (in inches)</label>
             <input type="number" id="eccentricity" placeholder="Enter eccentricity" required>
 
             <label for="windLoad">Wind Load (in tons)</label>
             <input type="number" id="windLoad" placeholder="Enter wind load" required>
+
+            <label for="concreteStrengthUni">Concrete Strength (in psi)</label>
+            <input type="number" id="concreteStrengthUni" placeholder="Enter concrete strength" required>
         </div>
 
-        <!-- Bi-axial Fields -->
+        <!-- Bi-axial Column Fields -->
         <div id="biaxialFields" style="display: none;">
             <label for="eccentricityX">Eccentricity X (in inches)</label>
             <input type="number" id="eccentricityX" placeholder="Enter eccentricity X" required>
 
+            <label for="eccentricityY">Eccentricity Y (in inches)</label>
+            <input type="number" id="eccentricityY" placeholder="Enter eccentricity Y" required>
+
             <label for="seismicCoefficient">Seismic Coefficient</label>
             <input type="number" id="seismicCoefficient" placeholder="Enter seismic coefficient" required>
+
+            <label for="concreteStrengthBi">Concrete Strength (in psi)</label>
+            <input type="number" id="concreteStrengthBi" placeholder="Enter concrete strength" required>
         </div>
 
         <!-- Fire Exposure -->
@@ -120,6 +132,7 @@
             const columnHeight = parseFloat(document.getElementById('columnHeight').value);
             const rebarCount = parseInt(document.getElementById('rebarCount').value);
             const fireExposure = parseFloat(document.getElementById('fireExposure').value);
+            const concreteStrength = parseFloat(document.getElementById(columnType === 'uniaxial' ? 'concreteStrengthUni' : (columnType === 'biaxial' ? 'concreteStrengthBi' : 'concreteStrength')).value);
 
             // Uni-axial and Bi-axial specific inputs
             let eccentricity = 0;
@@ -135,7 +148,6 @@
             }
 
             // Basic Load Calculation (in tons)
-            const concreteStrength = 4000; // Concrete strength in psi (change as needed)
             const factorOfSafety = 1.5; // Safety factor
             const columnArea = (columnWidth * columnHeight) / 144; // Convert to square feet
             const basicLoad = (columnArea * concreteStrength * factorOfSafety) / 2000; // Convert to tons
