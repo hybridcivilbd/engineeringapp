@@ -146,42 +146,151 @@
             columnList.appendChild(row);
         }
 
-        function showEstimate() {
-            let columns = Array.from(document.querySelectorAll("#columnList tr"));
-            let totalSteel = { 10: 0, 12: 0, 16: 0, 20: 0 };
+function showEstimate() {
+    const columns = Array.from(document.querySelectorAll("#columnList tr"));
+    let totalCement = 0, totalSand = 0, totalAggregate = 0;
+    let totalWetVolume = 0, totalDryVolume = 0;
+    let totalSteelWeight = 0, totalStirrupWeight = 0;
 
-            let estimateData = columns.map(row => {
-                let cells = row.querySelectorAll("td");
-                let height = parseFloat(cells[3].innerText);
-                let columnNos = parseInt(cells[0].innerText);
-                let rebars = cells[4].innerHTML.replace(/<br>/g, "\n");
+    const estimateData = columns.map(row => {
+        const cells = row.querySelectorAll("td");
+        return {
+            columnNos: parseInt(cells[0].innerText),
+            name: cells[1].innerText,
+            size: cells[2].innerText,
+            height: parseFloat(cells[3].innerText),
+            rebars: cells[4].innerHTML.replace(/<br>/g, "\n")
+        };
+    });
 
-                rebars.split("\n").forEach(rebar => {
-                    let match = rebar.match(/(\d+) bars of (\d+)mm/);
-                    if (match) {
-                        let nos = parseInt(match[1]);
-                        let dia = parseInt(match[2]);
-                        let weightPerFoot = (dia * dia) / 533;
-                        let weight = (weightPerFoot * height * nos * columnNos).toFixed(2);
-                        totalSteel[dia] = (totalSteel[dia] || 0) + parseFloat(weight);
-                    }
-                });
+    const estimateWindow = window.open("", "_blank");
 
-                return { columnNos, height };
-            });
+    estimateWindow.document.write(`
+        <html>
+            <head>
+                <title>Column Estimate Details</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f8f9fa; color: #333; }
+                    h1 { text-align: center; color: #0056b3; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { padding: 12px; text-align: left; border: 1px solid #ddd; }
+                    th { background-color: #007bff; color: white; text-align: center; }
+                    tr:nth-child(even) { background-color: #f2f2f2; }
+                    .details { font-size: 14px; color: #555; }
+                </style>
+            </head>
+            <body>
+                <h1>Column Estimate Details</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Column Nos</th>
+                            <th>Name</th>
+                            <th>Size</th>
+                            <th>Height (ft)</th>
+                            <th>Materials</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `);
 
-            let totalSteelKg = Object.values(totalSteel).reduce((sum, val) => sum + val, 0);
+    estimateData.forEach(data => {
+        const heightInFeet = data.height;
+        const columnX = parseFloat(data.size.split('x')[0]);
+        const columnY = parseFloat(data.size.split('x')[1]);
 
-            alert(`
-                Total Steel:
-                10mm: ${totalSteel[10].toFixed(2)} kg
-                12mm: ${totalSteel[12].toFixed(2)} kg
-                16mm: ${totalSteel[16].toFixed(2)} kg
-                20mm: ${totalSteel[20].toFixed(2)} kg
-                -------------------
-                Total Steel: ${totalSteelKg.toFixed(2)} kg
-            `);
-        }
+        // **Concrete Volume Calculations**
+        const wetVolume = (heightInFeet * columnX * columnY) / 144; // ft³
+        const totalWetVol = wetVolume * data.columnNos;
+        const dryVolume = totalWetVol * 1.54; // Dry volume with 54% wastage
+
+        const totalParts = 1 + 1.5 + 3;
+        const cementVolume = (1 / totalParts) * dryVolume;
+        const sandVolume = (1.5 / totalParts) * dryVolume;
+        const aggregateVolume = (3 / totalParts) * dryVolume;
+
+        const cementBags = Math.ceil(cementVolume / 1.25);
+        const sandCft = Math.ceil(sandVolume);
+        const aggregateCft = Math.ceil(aggregateVolume);
+
+        totalWetVolume += totalWetVol;
+        totalDryVolume += dryVolume;
+        totalCement += cementBags;
+        totalSand += sandCft;
+        totalAggregate += aggregateCft;
+
+        let barDetails = "";
+        data.rebars.split("\n").forEach(rebar => {
+            const match = rebar.match(/(\d+) bars of (\d+)mm/);
+            if (match) {
+                const nos = parseInt(match[1]);
+                const dia = parseInt(match[2]);
+                const weightPerFoot = (dia * dia) / 533; // kg/ft
+                const weight = (weightPerFoot * heightInFeet * nos * data.columnNos).toFixed(2);
+                barDetails += `${nos} bars of ${dia}mm: ${weight} kg\n`;
+                totalSteelWeight += parseFloat(weight);
+            }
+        });
+
+        // **Stirrup Calculation**
+        const clearCover = 1.5; // inches
+        const stirrupDia = 10; // mm
+        const stirrupSpacing = 5; // inches
+
+        const stirrupLength = 2 * (columnX - 2 * clearCover) + 2 * (columnY - 2 * clearCover) + 6;
+        const stirrupLengthFeet = stirrupLength / 12; // Convert to feet
+
+        const numberOfStirrups = Math.ceil((heightInFeet * 12) / stirrupSpacing) * data.columnNos;
+        const stirrupWeightPerFoot = (stirrupDia * stirrupDia) / 533; // kg/ft
+        const stirrupWeight = (stirrupWeightPerFoot * stirrupLengthFeet * numberOfStirrups).toFixed(2);
+        barDetails += `Stirrups: ${numberOfStirrups} stirrups of ${stirrupDia}mm: ${stirrupWeight} kg\n`;
+
+        totalStirrupWeight += parseFloat(stirrupWeight);
+
+        estimateWindow.document.write(`
+            <tr>
+                <td>${data.columnNos}</td>
+                <td>${data.name}</td>
+                <td>${data.size}</td>
+                <td>${data.height.toFixed(2)}</td>
+                <td class="details">
+                    Cement: ${cementBags} bags (50 kg)<br>
+                    Sand: ${sandCft} cft<br>
+                    Aggregate: ${aggregateCft} cft<br>
+                    Bars:<br>${barDetails.replace(/\n/g, "<br>")}
+                </td>
+            </tr>
+        `);
+    });
+
+    estimateWindow.document.write(`
+                    </tbody>
+                </table>
+
+                <h2>Total Material Summary</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Total Wet Volume</td><td>${totalWetVolume.toFixed(2)} ft³</td></tr>
+                        <tr><td>Total Dry Volume</td><td>${totalDryVolume.toFixed(2)} ft³</td></tr>
+                        <tr><td>Total Cement</td><td>${totalCement} bags</td></tr>
+                        <tr><td>Total Sand</td><td>${totalSand} cft</td></tr>
+                        <tr><td>Total Aggregate</td><td>${totalAggregate} cft</td></tr>
+                        <tr><td>Total Steel Bars</td><td>${totalSteelWeight.toFixed(2)} kg</td></tr>
+                        <tr><td>Total Stirrup Steel</td><td>${totalStirrupWeight.toFixed(2)} kg</td></tr>
+                    </tbody>
+                </table>
+            </body>
+        </html>
+    `);
+
+    estimateWindow.document.close();
+}
     </script>
 </body>
 </html>
