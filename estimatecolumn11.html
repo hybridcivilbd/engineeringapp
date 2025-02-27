@@ -170,8 +170,14 @@
             `;
         }
 
+
+    });
+
 function showEstimate() {
     const columns = Array.from(document.querySelectorAll("#columnList tr"));
+    let totalCement = 0, totalSand = 0, totalAggregate = 0;
+    let totalSteelWeight = 0, totalStirrupWeight = 0;
+    
     const estimateData = columns.map(row => {
         const cells = row.querySelectorAll("td");
         return {
@@ -183,82 +189,20 @@ function showEstimate() {
         };
     });
 
-    // Always recreate a fresh estimate window
     const estimateWindow = window.open("", "_blank");
-
+    
     estimateWindow.document.write(`
         <html>
             <head>
                 <title>Column Estimate Details</title>
                 <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        margin: 0;
-                        padding: 20px;
-                        background-color: #f8f9fa;
-                        color: #333;
-                    }
-                    h1 {
-                        text-align: center;
-                        color: #0056b3;
-                        font-size: 24px;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin-top: 20px;
-                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-                    }
-                    th, td {
-                        padding: 12px 15px;
-                        text-align: left;
-                        border: 1px solid #ddd;
-                    }
-                    th {
-                        background-color: #007bff;
-                        color: white;
-                        text-align: center;
-                    }
-                    tr:nth-child(even) {
-                        background-color: #f2f2f2;
-                    }
-                    tr:hover {
-                        background-color: #ddd;
-                    }
-                    .details {
-                        font-size: 14px;
-                        color: #555;
-                    }
-                    @media (max-width: 768px) {
-                        h1 {
-                            font-size: 20px;
-                        }
-                        table, th, td {
-                            font-size: 12px;
-                        }
-                        th, td {
-                            padding: 8px 10px;
-                        }
-                    }
-                    @media (max-width: 480px) {
-                        table {
-                            display: block;
-                            overflow-x: auto;
-                            white-space: nowrap;
-                        }
-                        th, td {
-                            display: block;
-                            text-align: left;
-                        }
-                        th {
-                            background-color: #0056b3;
-                        }
-                        tr {
-                            margin-bottom: 10px;
-                            display: block;
-                            border-bottom: 1px solid #ddd;
-                        }
-                    }
+                    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f8f9fa; color: #333; }
+                    h1 { text-align: center; color: #0056b3; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { padding: 12px; text-align: left; border: 1px solid #ddd; }
+                    th { background-color: #007bff; color: white; text-align: center; }
+                    tr:nth-child(even) { background-color: #f2f2f2; }
+                    .details { font-size: 14px; color: #555; }
                 </style>
             </head>
             <body>
@@ -270,7 +214,7 @@ function showEstimate() {
                             <th>Name</th>
                             <th>Size</th>
                             <th>Height (ft)</th>
-                            <th>Details</th>
+                            <th>Materials</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -281,6 +225,7 @@ function showEstimate() {
         const columnX = parseFloat(data.size.split('x')[0]);
         const columnY = parseFloat(data.size.split('x')[1]);
 
+        // Concrete Volume Calculations
         const wetVolume = (heightInFeet * columnX * columnY) / 144; // ft³
         const totalWetVolume = wetVolume * data.columnNos;
         const dryVolume = totalWetVolume * 1.54; // ft³
@@ -294,6 +239,10 @@ function showEstimate() {
         const sandCft = Math.ceil(sandVolume);
         const aggregateCft = Math.ceil(aggregateVolume);
 
+        totalCement += cementBags;
+        totalSand += sandCft;
+        totalAggregate += aggregateCft;
+
         let barDetails = "";
         data.rebars.split("\n").forEach(rebar => {
             const match = rebar.match(/(\d+) bars of (\d+)mm/);
@@ -303,23 +252,24 @@ function showEstimate() {
                 const weightPerFoot = (dia * dia) / 533; // kg/ft
                 const weight = (weightPerFoot * heightInFeet * nos * data.columnNos).toFixed(2);
                 barDetails += `${nos} bars of ${dia}mm: ${weight} kg\n`;
+                totalSteelWeight += parseFloat(weight);
             }
         });
 
-const clearCover = 1.5; // inches
-const stirrupDia = 10; // mm
-const stirrupSpacing = 5; // inches c/c
+        // Stirrup Calculation
+        const clearCover = 1.5; // inches
+        const stirrupDia = 10; // mm
+        const stirrupSpacing = 5; // inches
 
-// Adjusted stirrup length with clear cover and extra 6 inches
-const stirrupLength = 2 * (columnX - 2 * clearCover) + 2 * (columnY - 2 * clearCover) + 6; 
-const stirrupLengthFeet = stirrupLength / 12; // Convert to feet
+        const stirrupLength = 2 * (columnX - 2 * clearCover) + 2 * (columnY - 2 * clearCover) + 6;
+        const stirrupLengthFeet = stirrupLength / 12; // Convert to feet
 
-const numberOfStirrups = Math.ceil((heightInFeet * 12) / stirrupSpacing) * data.columnNos;
-const stirrupWeightPerFoot = (stirrupDia * stirrupDia) / 533; // kg/ft
-const stirrupWeight = (stirrupWeightPerFoot * stirrupLengthFeet * numberOfStirrups).toFixed(2);
+        const numberOfStirrups = Math.ceil((heightInFeet * 12) / stirrupSpacing) * data.columnNos;
+        const stirrupWeightPerFoot = (stirrupDia * stirrupDia) / 533; // kg/ft
+        const stirrupWeight = (stirrupWeightPerFoot * stirrupLengthFeet * numberOfStirrups).toFixed(2);
+        barDetails += `Stirrups: ${numberOfStirrups} stirrups of ${stirrupDia}mm: ${stirrupWeight} kg\n`;
 
-barDetails += `Stirrups: ${numberOfStirrups} stirrups of ${stirrupDia}mm: ${stirrupWeight} kg\n`;
-
+        totalStirrupWeight += parseFloat(stirrupWeight);
 
         estimateWindow.document.write(`
             <tr>
@@ -340,13 +290,29 @@ barDetails += `Stirrups: ${numberOfStirrups} stirrups of ${stirrupDia}mm: ${stir
     estimateWindow.document.write(`
                     </tbody>
                 </table>
+
+                <h2>Total Material Summary</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Total Cement</td><td>${totalCement} bags</td></tr>
+                        <tr><td>Total Sand</td><td>${totalSand} cft</td></tr>
+                        <tr><td>Total Aggregate</td><td>${totalAggregate} cft</td></tr>
+                        <tr><td>Total Steel Bars</td><td>${totalSteelWeight.toFixed(2)} kg</td></tr>
+                        <tr><td>Total Stirrup Steel</td><td>${totalStirrupWeight.toFixed(2)} kg</td></tr>
+                    </tbody>
+                </table>
             </body>
         </html>
     `);
 
     estimateWindow.document.close();
 }
-
-    </script>
+</script>
 </body>
 </html>
