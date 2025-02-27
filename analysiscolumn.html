@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Column Load Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .output-section {
+            display: none;
+            background-color: #e7f7ff;
+            padding: 20px;
+            border-radius: 4px;
+        }
+        .output-section p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Column Load Calculator</h1>
+
+        <!-- Column Type Selection -->
+        <label for="columnType">Select Column Type</label>
+        <select id="columnType" onchange="toggleFields()">
+            <option value="axial">Axial Column</option>
+            <option value="uniaxial">Uni-axial Column</option>
+            <option value="biaxial">Bi-axial Column</option>
+        </select>
+
+        <!-- Input Fields -->
+        <div id="axialFields">
+            <label for="columnWidth">Column Width (in inches)</label>
+            <input type="number" id="columnWidth" placeholder="Enter column width" required>
+
+            <label for="columnHeight">Column Height (in feet)</label>
+            <input type="number" id="columnHeight" placeholder="Enter column height" required>
+
+            <label for="rebarCount">Number of 16mm Rebars</label>
+            <input type="number" id="rebarCount" placeholder="Enter number of rebars" required>
+        </div>
+
+        <!-- Uni-axial Fields -->
+        <div id="uniaxialFields" style="display: none;">
+            <label for="eccentricity">Eccentricity (in inches)</label>
+            <input type="number" id="eccentricity" placeholder="Enter eccentricity" required>
+
+            <label for="windLoad">Wind Load (in tons)</label>
+            <input type="number" id="windLoad" placeholder="Enter wind load" required>
+        </div>
+
+        <!-- Bi-axial Fields -->
+        <div id="biaxialFields" style="display: none;">
+            <label for="eccentricityX">Eccentricity X (in inches)</label>
+            <input type="number" id="eccentricityX" placeholder="Enter eccentricity X" required>
+
+            <label for="seismicCoefficient">Seismic Coefficient</label>
+            <input type="number" id="seismicCoefficient" placeholder="Enter seismic coefficient" required>
+        </div>
+
+        <!-- Fire Exposure -->
+        <label for="fireExposure">Fire Exposure (in %)</label>
+        <input type="number" id="fireExposure" placeholder="Enter fire exposure percentage" required>
+
+        <!-- Button to calculate the load -->
+        <button onclick="calculateLoad()">Calculate Load</button>
+
+        <!-- Output Section -->
+        <div class="output-section" id="output">
+            <h2>Calculated Loads</h2>
+            <p><strong>Basic Load:</strong> <span id="basicSafeLoad"></span> tons</p>
+            <p><strong>Safe Load (Wind Adjusted):</strong> <span id="windSafeLoad"></span> tons</p>
+            <p><strong>Safe Load (Seismic Adjusted):</strong> <span id="seismicSafeLoad"></span> tons</p>
+            <p><strong>Safe Load (Fire Adjusted):</strong> <span id="fireSafeLoad"></span> tons</p>
+            <p><strong>Final Safe Load:</strong> <span id="finalSafeLoad"></span> tons</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleFields() {
+            const columnType = document.getElementById('columnType').value;
+            document.getElementById('axialFields').style.display = columnType === 'axial' ? 'block' : 'none';
+            document.getElementById('uniaxialFields').style.display = columnType === 'uniaxial' ? 'block' : 'none';
+            document.getElementById('biaxialFields').style.display = columnType === 'biaxial' ? 'block' : 'none';
+        }
+
+        function calculateLoad() {
+            // Get inputs
+            const columnType = document.getElementById('columnType').value;
+            const columnWidth = parseFloat(document.getElementById('columnWidth').value);
+            const columnHeight = parseFloat(document.getElementById('columnHeight').value);
+            const rebarCount = parseInt(document.getElementById('rebarCount').value);
+            const fireExposure = parseFloat(document.getElementById('fireExposure').value);
+
+            // Uni-axial and Bi-axial specific inputs
+            let eccentricity = 0;
+            let windLoad = 0;
+            let seismicCoefficient = 0;
+
+            if (columnType === 'uniaxial') {
+                eccentricity = parseFloat(document.getElementById('eccentricity').value);
+                windLoad = parseFloat(document.getElementById('windLoad').value);
+            } else if (columnType === 'biaxial') {
+                eccentricity = parseFloat(document.getElementById('eccentricityX').value);
+                seismicCoefficient = parseFloat(document.getElementById('seismicCoefficient').value);
+            }
+
+            // Basic Load Calculation (in tons)
+            const concreteStrength = 4000; // Concrete strength in psi (change as needed)
+            const factorOfSafety = 1.5; // Safety factor
+            const columnArea = (columnWidth * columnHeight) / 144; // Convert to square feet
+            const basicLoad = (columnArea * concreteStrength * factorOfSafety) / 2000; // Convert to tons
+
+            // Load adjustments based on factors
+            const windReduction = 5; // tons
+            const seismicReduction = 10; // tons
+            const fireReduction = 25; // percentage
+            const extraSafetyMargin = 10; // percentage
+
+            let safeLoadBasic = basicLoad;
+            let safeLoadWind = basicLoad - windReduction;
+            let safeLoadSeismic = basicLoad - seismicReduction;
+            let safeLoadFire = basicLoad * (1 - fireReduction / 100);
+            let finalSafeLoad = safeLoadFire * (1 - extraSafetyMargin / 100);
+
+            // Display the results
+            document.getElementById('basicSafeLoad').innerText = safeLoadBasic.toFixed(2);
+            document.getElementById('windSafeLoad').innerText = safeLoadWind.toFixed(2);
+            document.getElementById('seismicSafeLoad').innerText = safeLoadSeismic.toFixed(2);
+            document.getElementById('fireSafeLoad').innerText = safeLoadFire.toFixed(2);
+            document.getElementById('finalSafeLoad').innerText = finalSafeLoad.toFixed(2);
+
+            // Show the output section
+            document.getElementById('output').style.display = 'block';
+        }
+    </script>
+
+</body>
+</html>
