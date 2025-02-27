@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Column Estimate Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f8f9fa; }
+        h1 { text-align: center; color: #0056b3; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border: 1px solid #ddd; }
+        th { background-color: #007bff; color: white; text-align: center; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        button { margin-top: 10px; padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h1>Column Estimate Calculator</h1>
+    
+    <label>Column Nos: <input type="number" id="columnNos"></label>
+    <label>Name: <input type="text" id="columnName"></label>
+    <label>Size (inches): <input type="text" id="columnSize" placeholder="width x height"></label>
+    <label>Height (feet): <input type="number" id="columnHeight"></label>
+    <label>Rebars (e.g., "4 bars of 16mm, 2 bars of 12mm"): <input type="text" id="rebars"></label>
+    <button onclick="addColumn()">Add Column</button>
+
+    <table id="columnList">
+        <thead>
+            <tr>
+                <th>Column Nos</th>
+                <th>Name</th>
+                <th>Size</th>
+                <th>Height (ft)</th>
+                <th>Rebars</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <button onclick="showEstimate()">Generate Estimate</button>
+
+    <script>
+        function addColumn() {
+            const columnNos = document.getElementById("columnNos").value;
+            const columnName = document.getElementById("columnName").value;
+            const columnSize = document.getElementById("columnSize").value;
+            const columnHeight = document.getElementById("columnHeight").value;
+            const rebars = document.getElementById("rebars").value;
+
+            if (!columnNos || !columnName || !columnSize || !columnHeight || !rebars) {
+                alert("Please fill all fields.");
+                return;
+            }
+
+            const table = document.getElementById("columnList").querySelector("tbody");
+            const row = table.insertRow();
+            row.innerHTML = `
+                <td>${columnNos}</td>
+                <td>${columnName}</td>
+                <td>${columnSize}</td>
+                <td>${columnHeight}</td>
+                <td>${rebars.replace(/,/g, "<br>")}</td>
+            `;
+        }
+
+        function showEstimate() {
+            const columns = Array.from(document.querySelectorAll("#columnList tr"));
+            let totalCement = 0, totalSand = 0, totalAggregate = 0;
+            let totalSteelWeight = 0, totalStirrupWeight = 0;
+
+            let steelBreakdown = { 10: 0, 12: 0, 16: 0, 20: 0 };
+
+            const estimateData = columns.map(row => {
+                const cells = row.querySelectorAll("td");
+                return {
+                    columnNos: parseInt(cells[0].innerText),
+                    name: cells[1].innerText,
+                    size: cells[2].innerText,
+                    height: parseFloat(cells[3].innerText),
+                    rebars: cells[4].innerHTML.replace(/<br>/g, "\n")
+                };
+            });
+
+            const estimateWindow = window.open("", "_blank");
+
+            estimateWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Column Estimate Details</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; padding: 20px; background-color: #f8f9fa; }
+                            h1 { text-align: center; color: #0056b3; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                            th, td { padding: 12px; text-align: left; border: 1px solid #ddd; }
+                            th { background-color: #007bff; color: white; text-align: center; }
+                            tr:nth-child(even) { background-color: #f2f2f2; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Column Estimate Details</h1>
+                        <table>
+                            <thead>
+                                <tr><th>Column Nos</th><th>Name</th><th>Size</th><th>Height (ft)</th><th>Materials</th></tr>
+                            </thead>
+                            <tbody>
+            `);
+
+            estimateData.forEach(data => {
+                const heightInFeet = data.height;
+                const [columnX, columnY] = data.size.split("x").map(Number);
+
+                const wetVolume = (heightInFeet * columnX * columnY) / 144;
+                const dryVolume = wetVolume * 1.54;
+                const totalParts = 1 + 1.5 + 3;
+                const cementBags = Math.ceil((1 / totalParts) * dryVolume / 1.25);
+                const sandCft = Math.ceil((1.5 / totalParts) * dryVolume);
+                const aggregateCft = Math.ceil((3 / totalParts) * dryVolume);
+
+                totalCement += cementBags;
+                totalSand += sandCft;
+                totalAggregate += aggregateCft;
+
+                let barDetails = "";
+                data.rebars.split("\n").forEach(rebar => {
+                    const match = rebar.match(/(\d+) bars of (\d+)mm/);
+                    if (match) {
+                        const nos = parseInt(match[1]);
+                        const dia = parseInt(match[2]);
+                        const weight = ((dia * dia) / 533) * heightInFeet * nos;
+                        barDetails += `${nos} bars of ${dia}mm: ${weight.toFixed(2)} kg\n`;
+                        totalSteelWeight += weight;
+                        if (steelBreakdown.hasOwnProperty(dia)) steelBreakdown[dia] += weight;
+                    }
+                });
+
+                estimateWindow.document.write(`
+                    <tr>
+                        <td>${data.columnNos}</td>
+                        <td>${data.name}</td>
+                        <td>${data.size}</td>
+                        <td>${data.height.toFixed(2)}</td>
+                        <td>${barDetails.replace(/\n/g, "<br>")}</td>
+                    </tr>
+                `);
+            });
+
+            estimateWindow.document.write(`
+                        </tbody>
+                    </table>
+                    <h2>Total Summary</h2>
+                    <table>
+                        <tr><td>Total Cement</td><td>${totalCement} bags</td></tr>
+                        <tr><td>Total Sand</td><td>${totalSand} cft</td></tr>
+                        <tr><td>Total Aggregate</td><td>${totalAggregate} cft</td></tr>
+                        <tr><td>Total Steel 10mm</td><td>${steelBreakdown[10].toFixed(2)} kg</td></tr>
+                        <tr><td>Total Steel 12mm</td><td>${steelBreakdown[12].toFixed(2)} kg</td></tr>
+                        <tr><td>Total Steel 16mm</td><td>${steelBreakdown[16].toFixed(2)} kg</td></tr>
+                        <tr><td>Total Steel 20mm</td><td>${steelBreakdown[20].toFixed(2)} kg</td></tr>
+                        <tr><td><b>Total Steel</b></td><td><b>${totalSteelWeight.toFixed(2)} kg</b></td></tr>
+                    </table>
+                </body>
+            </html>
+            `);
+            estimateWindow.document.close();
+        }
+    </script>
+
+</body>
+</html>
