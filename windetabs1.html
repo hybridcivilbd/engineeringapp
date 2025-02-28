@@ -1,238 +1,206 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wind Load Calculator</title>
-  <style>
-/* Reset & General Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wind Load Calculator</title>
+    <style>
+        /* Reset & General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
 
-body {
-  background: #f4f4f4;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 15px;
-}
+        body {
+            background: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
 
-/* Container */
-.container {
-  width: 100%;
-  max-width: 500px;
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
+        /* Container */
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
 
-/* Heading */
-h1 {
-  font-size: 20px;
-  color: #333;
-  margin-bottom: 15px;
-}
+        /* Heading */
+        h1 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 15px;
+        }
 
-/* Form Elements */
-form {
-  display: flex;
-  flex-direction: column;
-}
+        /* Form Elements */
+        form {
+            display: flex;
+            flex-direction: column;
+        }
 
-label {
-  font-size: 14px;
-  font-weight: bold;
-  color: #444;
-  text-align: left;
-  margin-bottom: 5px;
-}
+        label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #444;
+            text-align: left;
+            margin-bottom: 5px;
+        }
 
-/* Input & Select Styles */
-input, select {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  outline: none;
-  margin-bottom: 10px;
-  transition: 0.2s;
-}
+        /* Input & Select Styles */
+        input, select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+            margin-bottom: 10px;
+            transition: 0.2s;
+        }
 
-input:focus, select:focus {
-  border-color: #007bff;
-  background: #f9f9f9;
-}
+        input:focus, select:focus {
+            border-color: #007bff;
+            background: #f9f9f9;
+        }
 
-/* Button */
-button {
-  background: #007bff;
-  color: white;
-  padding: 12px;
-  border: none;
-  border-radius: 5px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.3s;
-}
+        /* Button */
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
 
-button:hover {
-  background: #0056b3;
-}
+        button:hover {
+            background: #0056b3;
+        }
 
-/* Result Box */
-#result {
-  font-size: 18px;
-  font-weight: bold;
-  color: #222;
-  margin-top: 15px;
-  padding: 10px;
-  background: #e9f5ff;
-  border-radius: 5px;
-  display: none;
-}
+        /* Result Box */
+        #result {
+            font-size: 18px;
+            font-weight: bold;
+            color: #222;
+            margin-top: 15px;
+            padding: 10px;
+            background: #e9f5ff;
+            border-radius: 5px;
+            display: none;
+        }
 
-/* Responsive for Smaller Screens */
-@media screen and (max-width: 480px) {
-  .container {
-    max-width: 95%;
-    padding: 15px;
-  }
+        /* Responsive for Smaller Screens */
+        @media screen and (max-width: 480px) {
+            .container {
+                max-width: 95%;
+                padding: 15px;
+            }
 
-  h1 {
-    font-size: 18px;
-  }
+            h1 {
+                font-size: 18px;
+            }
 
-  input, select, button {
-    font-size: 14px;
-    padding: 10px;
-  }
+            input, select, button {
+                font-size: 14px;
+                padding: 10px;
+            }
 
-  #result {
-    font-size: 16px;
-    padding: 8px;
-  }
-}
-
-  </style>
+            #result {
+                font-size: 16px;
+                padding: 8px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>Wind Load Calculator</h1>
 
-  <!-- City Selection -->
-  <label for="city">Select City:</label>
-  <select id="city" onchange="updateWindSpeed()">
-    <option value="">-- Select City --</option>
-    <script>
-      const windData = {
-        "angarpota": 47.8, "bagerhat": 77.5, "bandarban": 62.5, "barguna": 80.0, 
-        "barisal": 78.7, "bhola": 69.5, "bogra": 61.9, "brahmanbaria": 56.7, 
-        "chandpur": 50.6, "chapai nawabganj": 41.4, "chittagong": 80.0, "chuadanga": 61.9, 
-        "comilla": 61.4, "cox’s bazar": 80.0, "dahagram": 47.8, "dhaka": 65.7, 
-        "dinajpur": 41.4, "faridpur": 63.1, "feni": 64.1, "gaibandha": 65.6, 
-        "gazipur": 66.5, "gopalganj": 74.5, "habiganj": 54.2, "hatiya": 80.0, 
-        "ishurdi": 69.5, "jamalpur": 56.7, "jessore": 64.1, "jhalakati": 80.0, 
-        "jhenaidah": 65.0, "khagrachhari": 56.7, "khulna": 73.3, "kishoreganj": 64.7, 
-        "kurigram": 65.6, "kushtia": 66.9, "lalmonirhat": 63.7, "madaripur": 68.1, 
-        "magura": 65.0, "manikganj": 58.2, "meherpur": 58.2, "maheshkhali": 80.0, 
-        "moulvibazar": 53.0, "munshiganj": 57.1, "mymensingh": 67.4, "naogaon": 55.2, 
-        "narail": 68.6, "narayanganj": 61.1, "narsingdi": 59.7, "natore": 61.9, 
-        "netrokona": 65.6, "nilphamari": 44.7, "noakhali": 57.1, "pabna": 63.1, 
-        "panchagarh": 41.4, "patuakhali": 80.0, "pirojpur": 80.0, "rajbari": 59.1, 
-        "rajshahi": 49.2, "rangamati": 56.7, "rangpur": 65.3, "satkhira": 57.6, 
-        "shariatpur": 61.9, "sherpur": 62.5, "sirajganj": 50.6, "srimangal": 50.6, 
-        "st. martin’s": 80.0, "sunamganj": 61.1, "sylhet": 61.1, "tangail": 50.6, 
-        "teknaf": 80.0, "thakurgaon": 41.4
-      };
+<div class="container">
+    <h1>Wind Load Calculator</h1>
+    <form id="windForm">
+        <label for="city">Select City:</label>
+        <select id="city" required>
+            <!-- Wind speed values based on city -->
+        </select>
 
-      for (const city in windData) {
-        document.write(`<option value="${city}">${city.toUpperCase()}</option>`);
-      }
-    </script>
-  </select>
-  <br>
+        <label for="height">Building Height (feet):</label>
+        <input type="number" id="height" placeholder="Enter height in feet" required>
 
-  <!-- Building Inputs -->
-  <label for="height">Building Height (ft):</label>
-  <input type="number" id="height" placeholder="Height in feet">
-  <br>
+        <label for="width">Building Width (feet):</label>
+        <input type="number" id="width" placeholder="Enter width in feet" required>
 
-  <label for="width">Building Width (ft):</label>
-  <input type="number" id="width" placeholder="Width in feet">
-  <br>
+        <label for="length">Building Length (feet):</label>
+        <input type="number" id="length" placeholder="Enter length in feet" required>
 
-  <label for="length">Building Length (ft):</label>
-  <input type="number" id="length" placeholder="Length in feet">
-  <br>
+        <label for="drag">Drag Coefficient (Cd):</label>
+        <input type="number" id="drag" placeholder="e.g., 1.2" required>
 
-  <label for="windSpeed">Wind Speed (mph):</label>
-  <input type="number" id="windSpeed" disabled>
-  <br>
+        <label for="gust">Gust Factor (G):</label>
+        <input type="number" id="gust" placeholder="e.g., 1.3" required>
 
-  <!-- Drag Coefficient Selection -->
-  <label for="dragCoefficient">Drag Coefficient (Cd):</label>
-  <select id="dragCoefficient">
-    <option value="1.2">Rectangular (1.2)</option>
-    <option value="1.3">Cylindrical (1.3)</option>
-    <option value="1.4">Irregular (1.4)</option>
-  </select>
-  <br>
+        <button type="button" onclick="calculateWindLoad()">Calculate Wind Load</button>
+    </form>
 
-  <!-- Gust Factor Selection -->
-  <label for="gustFactor">Gust Factor (G):</label>
-  <select id="gustFactor">
-    <option value="1.1">Low-rise (1.1)</option>
-    <option value="1.3">Mid-rise (1.3)</option>
-    <option value="1.4">High-rise (1.4)</option>
-  </select>
-  <br>
+    <div id="result"></div>
+</div>
 
-  <button onclick="calculateWindLoad()">Calculate Wind Load</button>
+<script>
+    // Wind speed data (mph)
+    const windData = {
+        "Dhaka": 65.7, "Chittagong": 80.0, "Khulna": 73.3, "Rajshahi": 49.2,
+        "Sylhet": 61.1, "Barisal": 78.7, "Mymensingh": 67.4, "Rangpur": 65.3
+    };
 
-  <div id="result"></div>
-
-  <script>
-    function updateWindSpeed() {
-      const city = document.getElementById('city').value;
-      const windSpeedField = document.getElementById('windSpeed');
-      windSpeedField.value = windData[city] || '';
+    // Populate city dropdown
+    const citySelect = document.getElementById("city");
+    for (const city in windData) {
+        const option = document.createElement("option");
+        option.value = windData[city];
+        option.textContent = city + " (" + windData[city] + " mph)";
+        citySelect.appendChild(option);
     }
 
     function calculateWindLoad() {
-      const height = parseFloat(document.getElementById('height').value);
-      const width = parseFloat(document.getElementById('width').value);
-      const windSpeed = parseFloat(document.getElementById('windSpeed').value);
-      const Cd = parseFloat(document.getElementById('dragCoefficient').value);
-      const G = parseFloat(document.getElementById('gustFactor').value);
+        const windSpeed = parseFloat(document.getElementById("city").value);
+        const height = parseFloat(document.getElementById("height").value);
+        const width = parseFloat(document.getElementById("width").value);
+        const length = parseFloat(document.getElementById("length").value);
+        const drag = parseFloat(document.getElementById("drag").value);
+        const gust = parseFloat(document.getElementById("gust").value);
 
-      if (isNaN(height) || isNaN(width) || isNaN(windSpeed)) {
-        alert('Please fill in all fields.');
-        return;
-      }
+        if (isNaN(windSpeed) || isNaN(height) || isNaN(width) || isNaN(length) || isNaN(drag) || isNaN(gust)) {
+            alert("Please fill all fields correctly.");
+            return;
+        }
 
-      // Calculate velocity pressure qz
-      const qz = 0.00256 * windSpeed * windSpeed;
+        // Calculate projected area (A = width × height)
+        const area = width * height;
 
-      // Projected area (A)
-      const A = height * width;
+        // Wind Pressure (P) = 0.00256 × (wind speed)^2 × G × Cd
+        const windPressure = 0.00256 * (windSpeed ** 2) * gust * drag;
 
-      // Wind Load Calculation
-      const windLoad = qz * G * Cd * A;
-      const windLoadKips = windLoad / 1000;
+        // Wind Load (F) = P × A
+        const windLoad = windPressure * area;
 
-      // Display the result
-      document.getElementById('result').innerHTML = `<p><strong>Wind Load:</strong> ${windLoadKips.toFixed(2)} kips</p>`;
+        // Convert to kips (1 kip = 1000 lbs)
+        const windLoadKip = windLoad / 1000;
+
+        // Display result
+        const resultDiv = document.getElementById("result");
+        resultDiv.innerHTML = `Wind Load: <strong>${windLoadKip.toFixed(2)} kips</strong>`;
+        resultDiv.style.display = "block";
     }
+</script>
 
-    updateWindSpeed();
-  </script>
 </body>
 </html>
