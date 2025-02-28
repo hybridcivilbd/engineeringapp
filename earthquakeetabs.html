@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earthquake Load Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+        }
+        button {
+            background: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: darkblue;
+        }
+        #result {
+            margin-top: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Earthquake Load Calculator</h2>
+
+    <label for="seismicZone">Seismic Zone:</label>
+    <select id="seismicZone">
+        <option value="0.1">Zone 1 (0.1g)</option>
+        <option value="0.2">Zone 2 (0.2g)</option>
+        <option value="0.3">Zone 3 (0.3g)</option>
+        <option value="0.4">Zone 4 (0.4g)</option>
+    </select>
+
+    <label for="buildingWeight">Building Weight (kip):</label>
+    <input type="number" id="buildingWeight" placeholder="Enter weight in kips">
+
+    <label for="buildingHeight">Building Height (ft):</label>
+    <input type="number" id="buildingHeight" placeholder="Enter height in feet">
+
+    <label for="baseArea">Base Area (sq ft):</label>
+    <input type="number" id="baseArea" placeholder="Enter base area in sq ft">
+
+    <label for="responseFactor">Response Modification Factor (R):</label>
+    <select id="responseFactor">
+        <option value="5.5">Steel Frame (R = 5.5)</option>
+        <option value="3">Concrete Frame (R = 3)</option>
+        <option value="6">Shear Wall (R = 6)</option>
+    </select>
+
+    <label for="importanceFactor">Importance Factor (I):</label>
+    <select id="importanceFactor">
+        <option value="1">Standard (I = 1)</option>
+        <option value="1.25">Important (I = 1.25)</option>
+        <option value="1.5">Essential (I = 1.5)</option>
+    </select>
+
+    <label for="soilType">Soil Type:</label>
+    <select id="soilType">
+        <option value="1">Rock (S = 1)</option>
+        <option value="1.2">Medium Soil (S = 1.2)</option>
+        <option value="1.5">Soft Soil (S = 1.5)</option>
+    </select>
+
+    <button onclick="calculateEarthquakeLoad()">Calculate Load</button>
+
+    <div id="result"></div>
+</div>
+
+<script>
+function calculateEarthquakeLoad() {
+    let seismicZone = parseFloat(document.getElementById("seismicZone").value);
+    let buildingWeight = parseFloat(document.getElementById("buildingWeight").value);
+    let buildingHeight = parseFloat(document.getElementById("buildingHeight").value);
+    let baseArea = parseFloat(document.getElementById("baseArea").value);
+    let responseFactor = parseFloat(document.getElementById("responseFactor").value);
+    let importanceFactor = parseFloat(document.getElementById("importanceFactor").value);
+    let soilType = parseFloat(document.getElementById("soilType").value);
+
+    if (isNaN(buildingWeight) || isNaN(buildingHeight) || isNaN(baseArea)) {
+        document.getElementById("result").innerHTML = "Please enter valid numbers.";
+        return;
+    }
+
+    let seismicCoefficient = seismicZone * importanceFactor / (responseFactor / soilType);
+    let baseShear = seismicCoefficient * buildingWeight;
+
+    document.getElementById("result").innerHTML = `Earthquake Load: ${baseShear.toFixed(2)} kip`;
+}
+</script>
+
+</body>
+</html>
