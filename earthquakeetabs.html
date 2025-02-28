@@ -101,15 +101,24 @@ function calculateEarthquakeLoad() {
     let importanceFactor = parseFloat(document.getElementById("importanceFactor").value);
     let soilType = parseFloat(document.getElementById("soilType").value);
 
-    if (isNaN(buildingWeight) || isNaN(buildingHeight) || isNaN(baseArea)) {
-        document.getElementById("result").innerHTML = "Please enter valid numbers.";
+    // Check for valid input
+    if (isNaN(buildingWeight) || isNaN(buildingHeight) || isNaN(baseArea) || buildingWeight <= 0 || buildingHeight <= 0 || baseArea <= 0) {
+        document.getElementById("result").innerHTML = "Please enter valid values for all inputs.";
         return;
     }
 
+    // Calculate seismic coefficient (S) based on the Seismic Zone, Importance Factor, Soil Type
     let seismicCoefficient = seismicZone * importanceFactor / (responseFactor / soilType);
-    let baseShear = seismicCoefficient * buildingWeight;
 
-    document.getElementById("result").innerHTML = `Earthquake Load: ${baseShear.toFixed(2)} kip`;
+    // Calculate base shear using the height and area factors
+    let heightFactor = 0.1 * buildingHeight; // Assumption for height factor calculation
+    let areaFactor = baseArea / 100; // Simplified area factor for proportional effect
+
+    // Total force from earthquake (lateral force)
+    let baseShear = seismicCoefficient * buildingWeight * (heightFactor + areaFactor);
+
+    // Show result
+    document.getElementById("result").innerHTML = `Calculated Earthquake Load: ${baseShear.toFixed(2)} kip`;
 }
 </script>
 
