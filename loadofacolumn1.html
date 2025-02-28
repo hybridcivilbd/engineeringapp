@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structure Weight Calculator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .input-group input[type="number"] {
+            width: 100%;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .row input {
+            flex: 1;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #007BFF;
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border-left: 5px solid #007BFF;
+        }
+
+        .result p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+
+        .highlight {
+            color: #d9534f;
+            font-weight: bold;
+        }
+
+        .note {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Structure Weight Calculator</h1>
+
+        <div class="input-group">
+            <label>Number of Stories:</label>
+            <input type="number" id="numStories" value="1" min="1">
+        </div>
+
+        <div class="input-group">
+            <label>Column Dimensions (mm):</label>
+            <div class="row">
+                <input type="number" id="colWidth" value="300" placeholder="Width">
+                <input type="number" id="colDepth" value="300" placeholder="Depth">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>Column Height (m):</label>
+            <input type="number" id="colHeight" value="3.281">
+        </div>
+
+        <div class="input-group">
+            <label>Slab Area (sq.ft):</label>
+            <input type="number" id="slabArea" value="150">
+        </div>
+
+        <div class="input-group">
+            <label>Slab Thickness (mm):</label>
+            <input type="number" id="slabThickness" value="125">
+        </div>
+
+        <div class="input-group">
+            <label>Beam Dimensions (mm):</label>
+            <div class="row">
+                <input type="number" id="beamWidth" value="250" placeholder="Width">
+                <input type="number" id="beamDepth" value="250" placeholder="Depth">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>Floor Finish Load (psf):</label>
+            <input type="number" id="floorFinish" value="10">
+        </div>
+
+        <div class="input-group">
+            <label>Live Load (psf):</label>
+            <input type="number" id="liveLoad" value="45">
+        </div>
+
+        <div class="input-group">
+            <label>Dead Load Factor:</label>
+            <input type="number" id="deadFactor" value="1.2" step="0.1">
+        </div>
+
+        <div class="input-group">
+            <label>Live Load Factor:</label>
+            <input type="number" id="liveFactor" value="1.6" step="0.1">
+        </div>
+
+        <button onclick="calculateWeight()">Calculate Total Weight</button>
+
+        <div class="result">
+            <h3>Load Calculations:</h3>
+            <p>Structural Dead Load: <span id="structuralDead">0.00</span> tons</p>
+            <p>Floor Finish Dead Load: <span id="floorFinishDead">0.00</span> tons</p>
+            <p>Total Dead Load: <span id="totalDead">0.00</span> tons</p>
+            <p>Factored Dead Load: <span id="factoredDead">0.00</span> tons</p>
+            <p>Live Load: <span id="liveLoadResult">0.00</span> tons</p>
+            <p class="highlight">Total Factored Load: <span id="totalFactored">0.00</span> tons</p>
+        </div>
+
+        <div class="note">
+            * Concrete density = 2400 kg/m³<br>
+            * 1 lb = 0.453592 kg<br>
+            * Factors follow ACI 318 standards
+        </div>
+    </div>
+
+    <script>
+        function calculateWeight() {
+            const concreteDensity = 2400;
+
+            const numStories = parseFloat(document.getElementById('numStories').value);
+            const colWidth = parseFloat(document.getElementById('colWidth').value) / 1000;
+            const colDepth = parseFloat(document.getElementById('colDepth').value) / 1000;
+            const colHeight = parseFloat(document.getElementById('colHeight').value);
+            const slabAreaSqft = parseFloat(document.getElementById('slabArea').value);
+            const slabThickness = parseFloat(document.getElementById('slabThickness').value) / 1000;
+            const beamWidth = parseFloat(document.getElementById('beamWidth').value) / 1000;
+            const beamDepth = parseFloat(document.getElementById('beamDepth').value) / 1000;
+            const floorFinish = parseFloat(document.getElementById('floorFinish').value);
+            const liveLoad = parseFloat(document.getElementById('liveLoad').value);
+            const deadFactor = parseFloat(document.getElementById('deadFactor').value);
+            const liveFactor = parseFloat(document.getElementById('liveFactor').value);
+
+            const slabAreaSqm = slabAreaSqft * 0.092903;
+
+            const colWeight = (colWidth * colDepth * colHeight * concreteDensity / 1000) * numStories;
+            const slabWeight = (slabAreaSqm * slabThickness * concreteDensity / 1000) * numStories;
+            const beamWeight = (beamWidth * beamDepth * 5 * concreteDensity / 1000) * numStories;
+
+            const structuralDead = colWeight + slabWeight + beamWeight;
+            const floorFinishDead = (slabAreaSqft * floorFinish * 0.453592) / 1000;
+
+            const totalDead = structuralDead + floorFinishDead;
+            const factoredDead = totalDead * deadFactor;
+            const liveLoadTon = (slabAreaSqft * liveLoad * 0.453592) / 1000;
+            const factoredLive = liveLoadTon * liveFactor;
+
+            document.getElementById('totalFactored').textContent = (factoredDead + factoredLive).toFixed(2);
+        }
+    </script>
+
+</body>
+</html>
