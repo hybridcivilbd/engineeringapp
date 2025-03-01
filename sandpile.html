@@ -93,8 +93,8 @@
       }
 
       // Calculate number of piles
-      // const spacing = 1.5; // 18 inches = 1.5 feet (center-to-center spacing)
-      const areaPerPile = pileSpacing * pileSpacing; // Each pile occupies 2.25 sqft
+      const spacing = pileSpacing/12; // 18 inches = 1.5 feet (center-to-center spacing)
+      const areaPerPile = spacing * spacing; // Each pile occupies 2.25 sqft
       const numPiles = Math.ceil(landArea / areaPerPile); // Round up to the nearest whole number
 
       // Calculate volume of one pile
