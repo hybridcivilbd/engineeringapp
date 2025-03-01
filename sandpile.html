@@ -52,6 +52,9 @@
     <label for="pileDiameter">Diameter of Pile (inches):</label>
     <input type="number" id="pileDiameter" placeholder="Enter diameter in inches">
 
+      <label for="pileSpacing">Spacing of Pile (inches):</label>
+    <input type="number" id="pileSpacing" placeholder="Enter spacing in inches">
+
     <label for="pileLength">Length of Pile (feet):</label>
     <input type="number" id="pileLength" placeholder="Enter length in feet">
 
@@ -78,19 +81,20 @@
       // Get input values
       const landArea = parseFloat(document.getElementById("landArea").value);
       const pileDiameter = parseFloat(document.getElementById("pileDiameter").value);
+      const pileSpacing = parseFloat(document.getElementById("pileSpacing").value);
       const pileLength = parseFloat(document.getElementById("pileLength").value);
       const costPerFoot = parseFloat(document.getElementById("costPerFoot").value);
       const costPerCft = parseFloat(document.getElementById("costPerCft").value);
 
       // Validate inputs
-      if (isNaN(landArea) || isNaN(pileDiameter) || isNaN(pileLength) || isNaN(costPerFoot) || isNaN(costPerCft)) {
+      if (isNaN(landArea) || isNaN(pileDiameter) || isNaN(pileSpacing) || isNaN(pileLength) || isNaN(costPerFoot) || isNaN(costPerCft)) {
         alert("Please fill all fields with valid numbers.");
         return;
       }
 
       // Calculate number of piles
-      const spacing = 1.5; // 18 inches = 1.5 feet (center-to-center spacing)
-      const areaPerPile = spacing * spacing; // Each pile occupies 2.25 sqft
+      // const spacing = 1.5; // 18 inches = 1.5 feet (center-to-center spacing)
+      const areaPerPile = pileSpacing * pileSpacing; // Each pile occupies 2.25 sqft
       const numPiles = Math.ceil(landArea / areaPerPile); // Round up to the nearest whole number
 
       // Calculate volume of one pile
