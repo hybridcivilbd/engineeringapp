@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P File Sharing</title>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f4f4f9;
+            margin: 0;
+            min-height: 100vh;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 95%;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+        input[type="text"], input[type="file"] {
+            width: 70%;
+            padding: 12px;
+            margin: 10px auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            display: block;
+        }
+        input[type="text"]:read-only {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 8px;
+            min-width: 120px;
+        }
+        /* Desktop-specific styles */
+        @media (min-width: 769px) {
+            .button-group {
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+            }
+            #peer-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 10px;
+            }
+        }
+        /* Mobile-specific styles */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            input[type="text"], input[type="file"] {
+                width: 100%;
+                font-size: 14px;
+            }
+            button {
+                width: 100%;
+                margin: 8px 0;
+                padding: 10px;
+            }
+            .button-group {
+                display: flex;
+                flex-direction: column;
+            }
+            #peer-list {
+                display: flex;
+                flex-direction: column;
+            }
+            .section {
+                padding: 10px;
+                margin: 15px 0;
+            }
+        }
+        /* Common interactive styles */
+        #connect-btn { background-color: #28a745; color: white; }
+        #disconnect-btn { background-color: #dc3545; color: white; display: none; }
+        #send-btn { background-color: #007bff; color: white; }
+        #search-btn { background-color: #ffc107; color: #333; }
+        button:hover { filter: brightness(0.9); }
+        #file-list, #peer-list {
+            text-align: left;
+            margin: 15px 0;
+            padding: 0;
+        }
+        .peer-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-align: center;
+        }
+        .peer-item:hover {
+            background-color: #e9ecef;
+        }
+        #received-files {
+            margin-top: 20px;
+        }
+        #download-link {
+            display: block;
+            padding: 10px;
+            margin: 10px auto;
+            width: 80%;
+            background-color: #17a2b8;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>P2P File Sharing</h2>
+
+        <div class="section center-text">
+            <h3>Your Peer ID</h3>
+            <input type="text" id="peer-id" readonly>
+        </div>
+
+        <div class="section">
+            <h3>Connect to Peer</h3>
+            <input type="text" id="connect-peer-id" placeholder="Enter 4-digit Peer ID">
+            <div class="button-group">
+                <button id="connect-btn" onclick="connectToPeer()">Connect</button>
+                <button id="disconnect-btn" onclick="disconnectFromPeer()">Disconnect</button>
+                <button id="search-btn" onclick="searchNearbyPeers()">Search Nearby Peers</button>
+            </div>
+            <div id="peer-list"></div>
+        </div>
+
+        <div class="section">
+            <h3>Send Files</h3>
+            <input type="file" id="file-input" multiple>
+            <div id="file-list"></div>
+            <button id="send-btn" onclick="sendFiles()">Send</button>
+        </div>
+
+        <div class="section">
+            <h3>Received Files</h3>
+            <div id="received-files"></div>
+        </div>
+    </div>
+
+    <script>
+        // Generate a 4-digit random numeric ID
+        function generatePeerID() {
+            return Math.floor(1000 + Math.random() * 9000).toString();
+        }
+
+        const peer = new Peer(generatePeerID());
+        let conn;
+        let knownPeers = new Set();
+
+        // Display Peer ID when connected to PeerJS Server
+        peer.on('open', id => {
+            document.getElementById('peer-id').value = id;
+            localStorage.setItem(`peer_${id}`, Date.now());
+        });
+
+        // Show selected files in the UI
+        document.getElementById('file-input').addEventListener('change', function () {
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = '';
+            const files = this.files;
+            for (let i = 0; i < files.length; i++) {
+                const fileItem = document.createElement('div');
+                fileItem.textContent = files[i].name;
+                fileList.appendChild(fileItem);
+            }
+        });
+
+        // Connect to a Peer (no notification)
+        function connectToPeer(peerId = null) {
+            const targetPeerId = peerId || document.getElementById("connect-peer-id").value;
+            if (targetPeerId.length !== 4 || isNaN(targetPeerId)) {
+                alert("Please enter a valid 4-digit Peer ID.");
+                return;
+            }
+            conn = peer.connect(targetPeerId);
+            conn.on("open", () => {
+                document.getElementById("connect-btn").style.display = "none";
+                document.getElementById("disconnect-btn").style.display = "inline-block";
+            });
+
+            conn.on("data", data => {
+                if (data.fileName && data.fileData) {
+                    const blob = new Blob([data.fileData]);
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = data.fileName;
+                    link.id = "download-link";
+                    link.innerText = `Download ${data.fileName}`;
+                    document.getElementById("received-files").appendChild(link);
+                }
+            });
+        }
+
+        // Disconnect from Peer
+        function disconnectFromPeer() {
+            if (conn) {
+                conn.close();
+                alert("Disconnected from peer.");
+                document.getElementById("connect-btn").style.display = "inline-block";
+                document.getElementById("disconnect-btn").style.display = "none";
+            }
+        }
+
+        // Send Multiple Files
+        function sendFiles() {
+            const fileInput = document.getElementById("file-input");
+            const files = fileInput.files;
+            if (!files.length || !conn) {
+                alert("Select at least one file and ensure you're connected to a peer.");
+                return;
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.readAsArrayBuffer(file);
+                reader.onload = function () {
+                    conn.send({
+                        fileName: file.name,
+                        fileData: reader.result
+                    });
+                    if (i === files.length - 1) {
+                        alert("All files sent successfully!");
+                        fileInput.value = '';
+                        document.getElementById('file-list').innerHTML = '';
+                    }
+                };
+            }
+        }
+
+        // Handle Incoming Connection
+        peer.on('connection', connection => {
+            conn = connection;
+            conn.on("open", () => {
+                document.getElementById("connect-btn").style.display = "none";
+                document.getElementById("disconnect-btn").style.display = "inline-block";
+            });
+            conn.on("data", data => {
+                if (data.fileName && data.fileData) {
+                    const blob = new Blob([data.fileData]);
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = data.fileName;
+                    link.id = "download-link";
+                    link.innerText = `Download ${data.fileName}`;
+                    document.getElementById("received-files").appendChild(link);
+                }
+            });
+        });
+
+        // Search Nearby Peers (Simulated)
+        function searchNearbyPeers() {
+            const peerList = document.getElementById('peer-list');
+            peerList.innerHTML = '';
+            knownPeers.clear();
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('peer_')) {
+                    const peerId = key.replace('peer_', '');
+                    if (peerId !== document.getElementById('peer-id').value) {
+                        knownPeers.add(peerId);
+                    }
+                }
+            }
+
+            if (knownPeers.size === 0) {
+                peerList.innerHTML = '<div>No nearby peers found.</div>';
+                return;
+            }
+
+            knownPeers.forEach(peerId => {
+                const peerItem = document.createElement('div');
+                peerItem.className = 'peer-item';
+                peerItem.textContent = `Peer ${peerId} - Click to connect`;
+                peerItem.onclick = () => {
+                    document.getElementById('connect-peer-id').value = peerId;
+                    connectToPeer(peerId);
+                };
+                peerList.appendChild(peerItem);
+            });
+        }
+
+        // Periodically clean up stale peers
+        setInterval(() => {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('peer_')) {
+                    const timestamp = localStorage.getItem(key);
+                    if (Date.now() - timestamp > 60000) {
+                        localStorage.removeItem(key);
+                    }
+                }
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
