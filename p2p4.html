@@ -171,9 +171,14 @@
     </div>
 
     <script>
-        // Generate a 4-digit random numeric ID
+        // Generate or retrieve a saved peer ID
         function generatePeerID() {
-            return Math.floor(1000 + Math.random() * 9000).toString();
+            let peerId = localStorage.getItem('savedPeerId');
+            if (!peerId) {
+                peerId = Math.floor(1000 + Math.random() * 9000).toString();
+                localStorage.setItem('savedPeerId', peerId);
+            }
+            return peerId;
         }
 
         const peer = new Peer(generatePeerID());
@@ -198,7 +203,7 @@
             }
         });
 
-        // Connect to a Peer (no notification)
+        // Connect to a Peer
         function connectToPeer(peerId = null) {
             const targetPeerId = peerId || document.getElementById("connect-peer-id").value;
             if (targetPeerId.length !== 4 || isNaN(targetPeerId)) {
@@ -209,6 +214,7 @@
             conn.on("open", () => {
                 document.getElementById("connect-btn").style.display = "none";
                 document.getElementById("disconnect-btn").style.display = "inline-block";
+                trackActivePeer(targetPeerId); // Track the connected peer
             });
 
             conn.on("data", data => {
@@ -222,15 +228,26 @@
                     document.getElementById("received-files").appendChild(link);
                 }
             });
+
+            conn.on('close', () => {
+                alert("Peer disconnected.");
+                document.getElementById("connect-btn").style.display = "inline-block";
+                document.getElementById("disconnect-btn").style.display = "none";
+                removeInactivePeer(targetPeerId); // Remove the disconnected peer
+                conn = null;
+            });
         }
 
         // Disconnect from Peer
         function disconnectFromPeer() {
             if (conn) {
+                const targetPeerId = conn.peer;
                 conn.close();
                 alert("Disconnected from peer.");
                 document.getElementById("connect-btn").style.display = "inline-block";
                 document.getElementById("disconnect-btn").style.display = "none";
+                removeInactivePeer(targetPeerId); // Remove the disconnected peer
+                conn = null;
             }
         }
 
@@ -267,6 +284,7 @@
             conn.on("open", () => {
                 document.getElementById("connect-btn").style.display = "none";
                 document.getElementById("disconnect-btn").style.display = "inline-block";
+                trackActivePeer(conn.peer); // Track the connected peer
             });
             conn.on("data", data => {
                 if (data.fileName && data.fileData) {
@@ -279,9 +297,16 @@
                     document.getElementById("received-files").appendChild(link);
                 }
             });
+            conn.on('close', () => {
+                alert("Peer disconnected.");
+                document.getElementById("connect-btn").style.display = "inline-block";
+                document.getElementById("disconnect-btn").style.display = "none";
+                removeInactivePeer(conn.peer); // Remove the disconnected peer
+                conn = null;
+            });
         });
 
-        // Search Nearby Peers (Simulated)
+        // Search Nearby Peers
         function searchNearbyPeers() {
             const peerList = document.getElementById('peer-list');
             peerList.innerHTML = '';
@@ -314,13 +339,23 @@
             });
         }
 
+        // Track active peers
+        function trackActivePeer(peerId) {
+            localStorage.setItem(`peer_${peerId}`, Date.now());
+        }
+
+        // Remove inactive peers
+        function removeInactivePeer(peerId) {
+            localStorage.removeItem(`peer_${peerId}`);
+        }
+
         // Periodically clean up stale peers
         setInterval(() => {
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key.startsWith('peer_')) {
                     const timestamp = localStorage.getItem(key);
-                    if (Date.now() - timestamp > 60000) {
+                    if (Date.now() - timestamp > 60000) { // Remove peers inactive for more than 1 minute
                         localStorage.removeItem(key);
                     }
                 }
