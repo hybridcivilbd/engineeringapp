@@ -182,7 +182,8 @@
         }
 
         const peer = new Peer(generatePeerID());
-        let conn;
+        let conn = null; // Connection object
+        let connectedPeerId = null; // Track the connected peer ID
         let knownPeers = new Set();
 
         // Display Peer ID when connected to PeerJS Server
@@ -210,10 +211,19 @@
                 alert("Please enter a valid 4-digit Peer ID.");
                 return;
             }
+
+            // Prevent reconnecting to the same peer
+            if (connectedPeerId === targetPeerId) {
+                alert("You are already connected to this peer.");
+                return;
+            }
+
             conn = peer.connect(targetPeerId);
             conn.on("open", () => {
+                connectedPeerId = targetPeerId; // Track the connected peer ID
                 document.getElementById("connect-btn").style.display = "none";
                 document.getElementById("disconnect-btn").style.display = "inline-block";
+                document.getElementById("connect-peer-id").placeholder = `Connected to ${targetPeerId}`;
                 trackActivePeer(targetPeerId); // Track the connected peer
             });
 
@@ -233,8 +243,10 @@
                 alert("Peer disconnected.");
                 document.getElementById("connect-btn").style.display = "inline-block";
                 document.getElementById("disconnect-btn").style.display = "none";
+                document.getElementById("connect-peer-id").placeholder = "Enter 4-digit Peer ID";
                 removeInactivePeer(targetPeerId); // Remove the disconnected peer
                 conn = null;
+                connectedPeerId = null; // Reset the connected peer ID
             });
         }
 
@@ -246,8 +258,10 @@
                 alert("Disconnected from peer.");
                 document.getElementById("connect-btn").style.display = "inline-block";
                 document.getElementById("disconnect-btn").style.display = "none";
+                document.getElementById("connect-peer-id").placeholder = "Enter 4-digit Peer ID";
                 removeInactivePeer(targetPeerId); // Remove the disconnected peer
                 conn = null;
+                connectedPeerId = null; // Reset the connected peer ID
             }
         }
 
@@ -282,8 +296,10 @@
         peer.on('connection', connection => {
             conn = connection;
             conn.on("open", () => {
+                connectedPeerId = conn.peer; // Track the connected peer ID
                 document.getElementById("connect-btn").style.display = "none";
                 document.getElementById("disconnect-btn").style.display = "inline-block";
+                document.getElementById("connect-peer-id").placeholder = `Connected to ${conn.peer}`;
                 trackActivePeer(conn.peer); // Track the connected peer
             });
             conn.on("data", data => {
@@ -301,8 +317,10 @@
                 alert("Peer disconnected.");
                 document.getElementById("connect-btn").style.display = "inline-block";
                 document.getElementById("disconnect-btn").style.display = "none";
+                document.getElementById("connect-peer-id").placeholder = "Enter 4-digit Peer ID";
                 removeInactivePeer(conn.peer); // Remove the disconnected peer
                 conn = null;
+                connectedPeerId = null; // Reset the connected peer ID
             });
         });
 
