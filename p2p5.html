@@ -18,8 +18,7 @@
             margin-bottom: 20px;
         }
         .container {
-            max-width: 500px;
-            width: 100%;
+            width: 390px; /* Fixed width for desktop */
             margin: 0 auto;
             padding: 20px;
             background: #fff;
@@ -29,15 +28,18 @@
         .section {
             margin: 20px 0;
         }
+        h3 {
+            margin-bottom: 10px;
+        }
         input[type="text"], input[type="file"] {
-            width: 100%;
+            width: 70%; /* Default for desktop */
             padding: 10px;
             margin: 10px auto;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 16px;
             display: block;
-            box-sizing: border-box;
+            box-sizing: border-box; /* Ensures padding doesn’t exceed width */
         }
         input[type="text"]:read-only {
             background-color: #f0f0f0;
@@ -51,7 +53,6 @@
             transition: background-color 0.3s;
             display: inline-block;
             margin: 5px;
-            width: 100%;
             box-sizing: border-box;
         }
         #connect-btn {
@@ -79,7 +80,7 @@
         #file-list {
             text-align: left;
             margin: 10px 0;
-            padding-left: 0;
+            padding-left: 15%; /* Default for desktop */
         }
         #download-link {
             display: block;
@@ -89,7 +90,7 @@
             text-decoration: none;
             border-radius: 5px;
             margin: 5px auto;
-            width: 100%;
+            width: 70%; /* Default for desktop */
             box-sizing: border-box;
         }
         #download-link:hover {
@@ -101,13 +102,35 @@
         .center-text {
             text-align: center;
         }
+        .button-group {
+            margin-top: 5px; /* Space between input and buttons */
+        }
 
-        @media (max-width: 600px) {
+        /* Mobile responsiveness */
+        @media (max-width: 480px) {
             .container {
+                width: 100%; /* Full width on mobile */
                 padding: 15px;
+                box-sizing: border-box;
+            }
+            input[type="text"], input[type="file"] {
+                width: 90%; /* Slightly wider for mobile */
             }
             button {
-                width: 100%;
+                width: 45%; /* Two buttons per row on small screens */
+                margin: 5px 2.5%; /* Equal spacing */
+            }
+            #file-list {
+                padding-left: 5%; /* Reduced padding for mobile */
+            }
+            #download-link {
+                width: 90%; /* Match input width on mobile */
+            }
+        }
+
+        @media (max-width: 320px) {
+            button {
+                width: 100%; /* Stack buttons on very small screens */
                 margin: 5px 0;
             }
         }
@@ -125,7 +148,7 @@
         <div class="section">
             <h3>Connect to Peer</h3>
             <input type="text" id="connect-peer-id" placeholder="Enter 4-digit Peer ID">
-            <div>
+            <div class="button-group">
                 <button id="connect-btn" onclick="connectToPeer()">Connect</button>
                 <button id="disconnect-btn" onclick="disconnectFromPeer()">Disconnect</button>
             </div>
