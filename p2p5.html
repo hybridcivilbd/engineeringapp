@@ -18,7 +18,8 @@
             margin-bottom: 20px;
         }
         .container {
-            width: 390px;
+            max-width: 500px;
+            width: 100%;
             margin: 0 auto;
             padding: 20px;
             background: #fff;
@@ -29,13 +30,14 @@
             margin: 20px 0;
         }
         input[type="text"], input[type="file"] {
-            width: 70%;
+            width: 100%;
             padding: 10px;
             margin: 10px auto;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 16px;
             display: block;
+            box-sizing: border-box;
         }
         input[type="text"]:read-only {
             background-color: #f0f0f0;
@@ -49,6 +51,8 @@
             transition: background-color 0.3s;
             display: inline-block;
             margin: 5px;
+            width: 100%;
+            box-sizing: border-box;
         }
         #connect-btn {
             background-color: #28a745;
@@ -75,7 +79,7 @@
         #file-list {
             text-align: left;
             margin: 10px 0;
-            padding-left: 15%;
+            padding-left: 0;
         }
         #download-link {
             display: block;
@@ -85,7 +89,8 @@
             text-decoration: none;
             border-radius: 5px;
             margin: 5px auto;
-            width: 70%;
+            width: 100%;
+            box-sizing: border-box;
         }
         #download-link:hover {
             background-color: #138496;
@@ -97,23 +102,13 @@
             text-align: center;
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 600px) {
             .container {
                 padding: 15px;
-                width: 390px;
-            }
-            input[type="text"], input[type="file"] {
-                width: 100%;
             }
             button {
                 width: 100%;
                 margin: 5px 0;
-            }
-            #file-list {
-                padding-left: 0;
-            }
-            #download-link {
-                width: 100%;
             }
         }
     </style>
