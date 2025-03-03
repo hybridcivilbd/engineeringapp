@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P File Sharing</title>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        /* (CSS remains the same as before) */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>P2P File Sharing</h2>
+
+        <div class="section center-text">
+            <h3>Your Peer ID</h3>
+            <input type="text" id="peer-id" readonly>
+        </div>
+
+        <div class="section">
+            <h3>Connect to Peer</h3>
+            <input type="text" id="connect-peer-id" placeholder="Enter 4-digit Peer ID">
+            <div class="button-group">
+                <button id="connect-btn" onclick="connectToPeer()">Connect</button>
+                <button id="disconnect-btn" onclick="disconnectFromPeer()">Disconnect</button>
+                <button id="search-btn" onclick="searchNearbyPeers()">Search Nearby Peers</button>
+            </div>
+            <div id="peer-list"></div>
+        </div>
+
+        <div class="section">
+            <h3>Send Files</h3>
+            <input type="file" id="file-input" multiple>
+            <div id="file-list"></div>
+            <button id="send-btn" onclick="sendFiles()">Send</button>
+        </div>
+
+        <div class="section">
+            <h3>Received Files</h3>
+            <div id="received-files"></div>
+        </div>
+    </div>
+
+    <script>
+        // Generate or retrieve a saved peer ID
+        function generatePeerID() {
+            let peerId = localStorage.getItem('savedPeerId');
+            if (!peerId) {
+                peerId = Math.floor(1000 + Math.random() * 9000).toString();
+                localStorage.setItem('savedPeerId', peerId);
+            }
+            return peerId;
+        }
+
+        const peer = new Peer(generatePeerID());
+        let conn = null; // Connection object
+        let connectedPeerId = null; // Track the connected peer ID
+        let knownPeers = new Set();
+
+        // Display Peer ID when connected to PeerJS Server
+        peer.on('open', id => {
+            document.getElementById('peer-id').value = id;
+            localStorage.setItem(`peer_${id}`, Date.now());
+        });
+
+        // Show selected files in the UI
+        document.getElementById('file-input').addEventListener('change', function () {
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = '';
+            const files = this.files;
+            for (let i = 0; i < files.length; i++) {
+                const fileItem = document.createElement('div');
+                fileItem.textContent = files[i].name;
+                fileList.appendChild(fileItem);
+            }
+        });
+
+        // Connect to a Peer
+        function connectToPeer(peerId = null) {
+            const targetPeerId = peerId || document.getElementById("connect-peer-id").value;
+            if (targetPeerId.length !== 4 || isNaN(targetPeerId)) {
+                alert("Please enter a valid 4-digit Peer ID.");
+                return;
+            }
+
+            // Prevent reconnecting to the same peer
+            if (connectedPeerId === targetPeerId) {
+                alert("You are already connected to this peer.");
+                return;
+            }
+
+            conn = peer.connect(targetPeerId);
+            conn.on("open", () => {
+                connectedPeerId = targetPeerId; // Track the connected peer ID
+                document.getElementById("connect-btn").style.display = "none";
+                document.getElementById("disconnect-btn").style.display = "inline-block";
+                document.getElementById("connect-peer-id").placeholder = `Connected to ${targetPeerId}`;
+                trackActivePeer(targetPeerId); // Track the connected peer
+            });
+
+            conn.on("data", data => {
+                if (data.fileName && data.fileData) {
+                    const blob = new Blob([data.fileData]);
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = data.fileName;
+                    link.id = "download-link";
+                    link.innerText = `Download ${data.fileName}`;
+                    document.getElementById("received-files").appendChild(link);
+                }
+            });
+
+            conn.on('close', () => {
+                alert("Peer disconnected. Page will reload.");
+                location.reload(); // Reload the page on disconnect
+            });
+        }
+
+        // Disconnect from Peer
+        function disconnectFromPeer() {
+            if (conn) {
+                const targetPeerId = conn.peer;
+                conn.close();
+                alert("Disconnected from peer. Page will reload.");
+                location.reload(); // Reload the page on disconnect
+            }
+        }
+
+        // Send Multiple Files
+        function sendFiles() {
+            const fileInput = document.getElementById("file-input");
+            const files = fileInput.files;
+            if (!files.length || !conn) {
+                alert("Select at least one file and ensure you're connected to a peer.");
+                return;
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.readAsArrayBuffer(file);
+                reader.onload = function () {
+                    conn.send({
+                        fileName: file.name,
+                        fileData: reader.result
+                    });
+                    if (i === files.length - 1) {
+                        alert("All files sent successfully!");
+                        fileInput.value = '';
+                        document.getElementById('file-list').innerHTML = '';
+                    }
+                };
+            }
+        }
+
+        // Handle Incoming Connection
+        peer.on('connection', connection => {
+            conn = connection;
+            conn.on("open", () => {
+                connectedPeerId = conn.peer; // Track the connected peer ID
+                document.getElementById("connect-btn").style.display = "none";
+                document.getElementById("disconnect-btn").style.display = "inline-block";
+                document.getElementById("connect-peer-id").placeholder = `Connected to ${conn.peer}`;
+                trackActivePeer(conn.peer); // Track the connected peer
+            });
+            conn.on("data", data => {
+                if (data.fileName && data.fileData) {
+                    const blob = new Blob([data.fileData]);
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = data.fileName;
+                    link.id = "download-link";
+                    link.innerText = `Download ${data.fileName}`;
+                    document.getElementById("received-files").appendChild(link);
+                }
+            });
+            conn.on('close', () => {
+                alert("Peer disconnected. Page will reload.");
+                location.reload(); // Reload the page on disconnect
+            });
+        });
+
+        // Search Nearby Peers (only online peers)
+        function searchNearbyPeers() {
+            const peerList = document.getElementById('peer-list');
+            peerList.innerHTML = '';
+            knownPeers.clear();
+
+            // Fetch all peers from localStorage
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('peer_')) {
+                    const peerId = key.replace('peer_', '');
+                    if (peerId !== document.getElementById('peer-id').value) {
+                        knownPeers.add(peerId);
+                    }
+                }
+            }
+
+            if (knownPeers.size === 0) {
+                peerList.innerHTML = '<div>No nearby peers found.</div>';
+                return;
+            }
+
+            // Check if peers are online
+            knownPeers.forEach(peerId => {
+                const testConn = peer.connect(peerId);
+                testConn.on('open', () => {
+                    // Peer is online
+                    const peerItem = document.createElement('div');
+                    peerItem.className = 'peer-item';
+                    peerItem.textContent = `Peer ${peerId} - Click to connect`;
+                    peerItem.onclick = () => {
+                        document.getElementById('connect-peer-id').value = peerId;
+                        connectToPeer(peerId);
+                    };
+                    peerList.appendChild(peerItem);
+                    testConn.close(); // Close the test connection
+                });
+                testConn.on('error', () => {
+                    // Peer is offline, remove from localStorage
+                    removeInactivePeer(peerId);
+                });
+            });
+        }
+
+        // Track active peers
+        function trackActivePeer(peerId) {
+            localStorage.setItem(`peer_${peerId}`, Date.now());
+        }
+
+        // Remove inactive peers
+        function removeInactivePeer(peerId) {
+            localStorage.removeItem(`peer_${peerId}`);
+        }
+
+        // Periodically clean up stale peers
+        setInterval(() => {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('peer_')) {
+                    const timestamp = localStorage.getItem(key);
+                    if (Date.now() - timestamp > 60000) { // Remove peers inactive for more than 1 minute
+                        localStorage.removeItem(key);
+                    }
+                }
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
