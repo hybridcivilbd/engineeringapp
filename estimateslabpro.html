@@ -113,6 +113,13 @@
             <input type="number" id="thickness" min="0" step="0.1" required>
         </div>
         <div class="form-group">
+            <label for="mixRatio">Concrete Mix Ratio:</label>
+            <select id="mixRatio" required>
+                <option value="1:1.5:3">1:1.5:3</option>
+                <option value="1:2:4">1:2:4</option>
+            </select>
+        </div>
+        <div class="form-group">
             <label for="mainBar">Main Bar Size:</label>
             <select id="mainBar" required>
                 <option value="10">10mm</option>
@@ -144,6 +151,7 @@
             const length = parseFloat(document.getElementById('length').value); // ft
             const width = parseFloat(document.getElementById('width').value);   // ft
             const thickness = parseFloat(document.getElementById('thickness').value) / 12; // convert in to ft
+            const mixRatio = document.getElementById('mixRatio').value;
             const mainBar = parseFloat(document.getElementById('mainBar').value); // mm
             const spacing = parseFloat(document.getElementById('spacing').value) / 12; // convert in to ft
             const extraBar = parseFloat(document.getElementById('extraBar').value); // mm
@@ -161,16 +169,24 @@
             const area = length * width; // sq.ft
             const volume = area * thickness; // cu.ft
 
-            // Concrete mix ratio 1:2:4 (cement:sand:aggregate)
-            const cementRatio = 1/7;
-            const sandRatio = 2/7;
-            const aggregateRatio = 4/7;
+            // Concrete mix ratio calculation
+            let cementRatio, sandRatio, aggregateRatio, totalParts;
+            if (mixRatio === "1:1.5:3") {
+                cementRatio = 1 / 5.5;
+                sandRatio = 1.5 / 5.5;
+                aggregateRatio = 3 / 5.5;
+                totalParts = 5.5;
+            } else { // 1:2:4
+                cementRatio = 1 / 7;
+                sandRatio = 2 / 7;
+                aggregateRatio = 4 / 7;
+                totalParts = 7;
+            }
+
             const cementVolume = volume * cementRatio * 1.54; // 1.54 is shrinkage factor
             const sandVolume = volume * sandRatio * 1.54;
             const aggregateVolume = volume * aggregateRatio * 1.54;
-
-            // Convert to bags (1 bag = 1.25 cu.ft)
-            const cementBags = Math.ceil(cementVolume / 1.25);
+            const cementBags = Math.ceil(cementVolume / 1.25); // 1 bag = 1.25 cu.ft
 
             // Steel calculation
             // Main bars
@@ -186,13 +202,6 @@
             const mainBarWeight = ((mainBar * mainBar) / 162) * (totalMainBarLength * 0.3048); // ft to m
             const topBarWeight = ((extraBar * extraBar) / 162) * (totalTopBarLength * 0.3048);
 
-            // Costs (example rates)
-            const cementCost = cementBags * 10; // $10 per bag
-            const sandCost = sandVolume * 5;    // $5 per cu.ft
-            const aggregateCost = aggregateVolume * 3; // $3 per cu.ft
-            const steelCost = (mainBarWeight + topBarWeight) * 1; // $1 per kg
-            const totalCost = cementCost + sandCost + aggregateCost + steelCost;
-
             // Display result
             const resultDiv = document.getElementById('result');
             resultDiv.style.display = 'block';
@@ -201,16 +210,14 @@
                 <h3>Estimate Results:</h3>
                 <p>Slab Area: ${area.toFixed(2)} sq.ft</p>
                 <p>Concrete Volume: ${volume.toFixed(2)} cu.ft</p>
-                <h4>Materials:</h4>
-                <p>Cement: ${cementBags} bags ($${cementCost.toFixed(2)})</p>
-                <p>Sand: ${sandVolume.toFixed(2)} cu.ft ($${sandCost.toFixed(2)})</p>
-                <p>Aggregate: ${aggregateVolume.toFixed(2)} cu.ft ($${aggregateCost.toFixed(2)})</p>
+                <h4>Materials (Mix Ratio ${mixRatio}):</h4>
+                <p>Cement: ${cementBags} bags (${cementVolume.toFixed(2)} cu.ft)</p>
+                <p>Sand: ${sandVolume.toFixed(2)} cu.ft</p>
+                <p>Aggregate: ${aggregateVolume.toFixed(2)} cu.ft</p>
                 <h4>Reinforcement:</h4>
                 <p>Main Bars (${mainBar}mm): ${totalMainBarLength.toFixed(2)} ft, ${mainBarWeight.toFixed(2)} kg</p>
                 <p>Extra Top Bars (${extraBar}mm): ${totalTopBarLength.toFixed(2)} ft, ${topBarWeight.toFixed(2)} kg</p>
-                <p>Total Steel Weight: ${(mainBarWeight + topBarWeight).toFixed(2)} kg ($${steelCost.toFixed(2)})</p>
-                <p>Total Estimated Cost: $${totalCost.toFixed(2)}</p>
-                <p><small>*Note: Costs are approximate. Actual values may vary.</small></p>
+                <p>Total Steel Weight: ${(mainBarWeight + topBarWeight).toFixed(2)} kg</p>
             `;
         }
     </script>
