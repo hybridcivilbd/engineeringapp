@@ -138,7 +138,7 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="extraBarsNum">Number of Extra Top Bars:</label>
+            <label for="extraBarsNum">Number of Extra Top Bars Sets:</label>
             <input type="number" id="extraBarsNum" min="0" step="1" required>
         </div>
         <button onclick="calculateEstimate()">Calculate Estimate</button>
@@ -153,7 +153,7 @@
             const thickness = parseFloat(document.getElementById('thickness').value) / 12; // convert in to ft
             const mixRatio = document.getElementById('mixRatio').value;
             const mainBar = parseFloat(document.getElementById('mainBar').value); // mm
-            const spacing = parseFloat(document.getElementById('spacing').value) / 12; // convert in to ft
+            const spacing = parseFloat(document.getElementById('spacing').value); // in
             const extraBar = parseFloat(document.getElementById('extraBar').value); // mm
             const extraBarsNum = parseInt(document.getElementById('extraBarsNum').value);
 
@@ -190,21 +190,21 @@
 
             // Steel calculation
             // Main bars
-            const numBarsLength = Math.floor(length / spacing) + 1;
-            const numBarsWidth = Math.floor(width / spacing) + 1;
+            const spacingFt = spacing / 12; // convert spacing to ft
+            const numBarsLength = Math.floor(length / spacingFt) + 1;
+            const numBarsWidth = Math.floor(width / spacingFt) + 1;
             const totalMainBarLength = (numBarsLength * width + numBarsWidth * length) * 1.05; // 5% extra for laps
             
-            // Corrected Extra top bars calculation
-            const slabArea = area; // sq.ft
-            const sqrtArea = Math.sqrt(slabArea);
-            const barLength = sqrtArea / 3; // Length of each bar
-            const numBarsPerDirection = Math.floor((sqrtArea * 12) / spacing) * 2; // Convert ft to inches and multiply by 2
-            const totalBars = numBarsPerDirection * 4; // 4 directions
-            const totalTopBarLength = totalBars * barLength * extraBarsNum; // Multiply by number of extra bars specified
+            // Extra top bars calculation matching your example
+            const sqrtArea = Math.sqrt(area); // ft
+            const perimeterInches = sqrtArea * 4 * 12; // convert to inches
+            const numBars = Math.floor(perimeterInches / (spacing * 2)); // number of bars
+            const barLength = sqrtArea / 3; // length of each bar in ft
+            const totalTopBarLength = numBars * barLength * extraBarsNum; // total length in ft
 
             // Steel weight (kg) - approximate: (d²/162) * length(m)
             const mainBarWeight = ((mainBar * mainBar) / 162) * (totalMainBarLength * 0.3048); // ft to m
-            const topBarWeight = ((extraBar * extraBar) / 162) * (totalTopBarLength * 0.3048);
+            const topBarWeight = ((extraBar * extraBar) / 162) * (totalTopBarLength * 0.3048); // ft to m
 
             // Display result
             const resultDiv = document.getElementById('result');
@@ -221,7 +221,7 @@
                 <h4>Reinforcement:</h4>
                 <p>Main Bars (${mainBar}mm): ${totalMainBarLength.toFixed(2)} ft, ${mainBarWeight.toFixed(2)} kg</p>
                 <p>Extra Top Bars (${extraBar}mm): ${totalTopBarLength.toFixed(2)} ft, ${topBarWeight.toFixed(2)} kg</p>
-                <p>Total Extra Top Bars: ${totalBars * extraBarsNum} bars, Each ${barLength.toFixed(2)} ft</p>
+                <p>Total Extra Top Bars: ${numBars * extraBarsNum} bars, Each ${barLength.toFixed(2)} ft</p>
                 <p>Total Steel Weight: ${(mainBarWeight + topBarWeight).toFixed(2)} kg</p>
             `;
         }
