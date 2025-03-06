@@ -14,7 +14,6 @@
             margin: 0;
             background-color: #f0f0f0;
         }
-
         .login-container {
             background: white;
             padding: 2rem;
@@ -22,21 +21,17 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             width: 300px;
         }
-
         h2 {
             text-align: center;
             margin-bottom: 1.5rem;
         }
-
         .form-group {
             margin-bottom: 1rem;
         }
-
         label {
             display: block;
             margin-bottom: 0.5rem;
         }
-
         input {
             width: 100%;
             padding: 8px;
@@ -44,7 +39,6 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
-
         button {
             width: 100%;
             padding: 10px;
@@ -54,11 +48,9 @@
             border-radius: 4px;
             cursor: pointer;
         }
-
         button:hover {
             background-color: #0056b3;
         }
-
         .error {
             color: red;
             text-align: center;
@@ -92,23 +84,17 @@
             const errorMessage = document.getElementById("error-message");
             
             try {
-                // Fetch credentials from credentials.json in the same directory
                 const response = await fetch('credentials.json');
                 const data = await response.json();
                 
                 const user = data.users.find(u => u.username === username && u.password === password);
                 
                 if (user) {
-                    // Set login state in localStorage
                     localStorage.setItem("isLoggedIn", "true");
-                    
                     errorMessage.textContent = "Login successful! Redirecting...";
                     errorMessage.style.color = "green";
-                    
-                    // Redirect to the target page after a delay
                     setTimeout(() => {
-                        window.location.href = "https://hybridcivilbd.github.io/engineeringapp/home.html";
-                        // If using a proxy.html, replace with: window.location.href = "./proxy.html";
+                        window.location.href = "https://hybridcivilbd.github.io/engineeringapp/proxy.html"; // Redirect to proxy
                     }, 1000);
                 } else {
                     errorMessage.textContent = "Invalid username or password";
@@ -117,7 +103,7 @@
                 errorMessage.textContent = "Error loading credentials";
                 console.error(error);
             }
-            return false; // Prevent form submission
+            return false;
         }
     </script>
 </body>
