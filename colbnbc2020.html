@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BNBC 2020 Column Design Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .container {
+            width: 50%;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 2px 2px 12px rgba(0,0,0,0.2);
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>BNBC 2020 Column Design Calculator</h2>
+        <label>Dead Load (kN/m²): </label>
+        <input type="number" id="deadLoad" step="0.1" placeholder="Enter Dead Load" required>
+        
+        <label>Live Load (kN/m²): </label>
+        <input type="number" id="liveLoad" step="0.1" placeholder="Enter Live Load" required>
+        
+        <label>Tributary Area (m²): </label>
+        <input type="number" id="tributaryArea" placeholder="Enter Tributary Area" required>
+        
+        <label>Number of Stories: </label>
+        <input type="number" id="stories" placeholder="Enter Number of Stories" required>
+        
+        <label>Concrete Strength (MPa): </label>
+        <input type="number" id="fc" step="0.1" placeholder="Enter f'c" required>
+        
+        <label>Steel Yield Strength (MPa): </label>
+        <input type="number" id="fy" step="0.1" placeholder="Enter fy" required>
+        
+        <label>Column Width (mm): </label>
+        <input type="number" id="b" placeholder="Enter Column Width" required>
+        
+        <label>Column Height (mm): </label>
+        <input type="number" id="h" placeholder="Enter Column Height" required>
+        
+        <button onclick="calculateDesign()">Calculate</button>
+        
+        <h3>Final Decision: <span id="decision"></span></h3>
+    </div>
+
+    <script>
+        function calculateDesign() {
+            let deadLoad = parseFloat(document.getElementById('deadLoad').value);
+            let liveLoad = parseFloat(document.getElementById('liveLoad').value);
+            let tributaryArea = parseFloat(document.getElementById('tributaryArea').value);
+            let stories = parseFloat(document.getElementById('stories').value);
+            let fc = parseFloat(document.getElementById('fc').value);
+            let fy = parseFloat(document.getElementById('fy').value);
+            let b = parseFloat(document.getElementById('b').value);
+            let h = parseFloat(document.getElementById('h').value);
+            
+            let Ag = b * h; // Gross Area
+            let As = 0.02 * Ag; // 2% Reinforcement
+            let Pn = (0.85 * fc * (Ag - As) + fy * As) / 1000; // kN
+            
+            let Pu = (1.2 * (deadLoad * tributaryArea * stories)) + (1.6 * (liveLoad * tributaryArea * stories));
+            
+            let decision = (Pu < Pn) ? "Safe" : "Redesign Required";
+            document.getElementById('decision').innerText = decision;
+        }
+    </script>
+</body>
+</html>
