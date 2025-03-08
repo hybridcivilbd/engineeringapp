@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beam Design Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .inputs {
+            width: 30%;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .inputs h2 {
+            text-align: center;
+        }
+
+        .inputs label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        .inputs input, .inputs select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        .inputs button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .inputs button:hover {
+            background-color: #0056b3;
+        }
+
+        .results {
+            width: 30%;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .graphs {
+            width: 30%;
+        }
+
+        canvas {
+            width: 100%;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="inputs">
+            <h2>Beam Design Calculator</h2>
+            <form id="beamForm">
+                <label for="slabArea">Slab Area (ft²):</label>
+                <input type="number" id="slabArea" required>
+                
+                <label for="beamLength">Beam Length (ft):</label>
+                <input type="number" id="beamLength" required>
+                
+                <label for="liveLoad">Live Load (45 psf on slab area):</label>
+                <input type="number" id="liveLoad" value="45" disabled>
+                
+                <label for="concreteStrength">Concrete Strength (f'c in psi):</label>
+                <input type="number" id="concreteStrength" value="3000" required>
+                
+                <label for="steelStrength">Steel Strength (fy in psi):</label>
+                <input type="number" id="steelStrength" value="60000" required>
+                
+                <label for="beamType">Beam Type:</label>
+                <select id="beamType">
+                    <option value="simplySupported">Simply Supported</option>
+                    <option value="continuous">Continuous</option>
+                    <option value="cantilever">Cantilever</option>
+                </select>
+                
+                <button type="button" onclick="calculateBeamDesign()">Calculate</button>
+            </form>
+        </div>
+
+        <div class="results">
+            <h2>Results</h2>
+            <div id="beamWidth"></div>
+            <div id="beamDepth"></div>
+            <div id="compressionSteel"></div>
+            <div id="tensionSteel"></div>
+        </div>
+
+        <div class="graphs">
+            <h3>Bending Moment Diagram (BMD)</h3>
+            <canvas id="bmdChart"></canvas>
+
+            <h3>Shear Force Diagram (SFD)</h3>
+            <canvas id="sfdChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        function calculateBeamDesign() {
+            const slabArea = parseFloat(document.getElementById('slabArea').value);
+            const beamLength = parseFloat(document.getElementById('beamLength').value);
+            const concreteStrength = parseFloat(document.getElementById('concreteStrength').value);
+            const steelStrength = parseFloat(document.getElementById('steelStrength').value);
+            const beamType = document.getElementById('beamType').value;
+
+            // Live Load (fixed at 45 psf)
+            const liveLoad = 45;
+
+            // Factored Load
+            const factoredLoad = liveLoad * slabArea;
+
+            // Ultimate Moment and Shear for Simply Supported Beam (Example: can extend for continuous and cantilever)
+            const M_u = (factoredLoad * Math.pow(beamLength, 2)) / 8;
+            const V_u = (factoredLoad * beamLength) / 2;
+
+            // Beam Dimensions (Assume Depth and Width based on M_u)
+            const beamWidth = 12; // Example constant width (can be calculated based on M_u)
+            const beamDepth = (M_u / (0.9 * steelStrength * beamWidth)) * 12; // Simplified Depth Calculation (in inches)
+
+            // Compression and Tension Steel Areas (simplified)
+            const A_s_compression = (M_u / (0.9 * concreteStrength * beamDepth)) * 100; // Simplified Compression Steel Area
+            const A_s_tension = (M_u / (0.9 * steelStrength * beamDepth)) * 100; // Simplified Tension Steel Area
+
+            // Display Results
+            document.getElementById('beamWidth').innerHTML = `Beam Width: ${beamWidth} in`;
+            document.getElementById('beamDepth').innerHTML = `Beam Depth: ${beamDepth.toFixed(2)} in`;
+            document.getElementById('compressionSteel').innerHTML = `Compression Steel Area: ${A_s_compression.toFixed(2)} in²`;
+            document.getElementById('tensionSteel').innerHTML = `Tension Steel Area: ${A_s_tension.toFixed(2)} in²`;
+
+            // BMD and SFD Chart Data
+            const bmdData = [0, M_u / 2, M_u, M_u / 2, 0];
+            const sfdData = [V_u, V_u / 2, 0, -V_u / 2, -V_u];
+
+            // Create BMD Chart
+            const ctxBMD = document.getElementById('bmdChart').getContext('2d');
+            new Chart(ctxBMD, {
+                type: 'line',
+                data: {
+                    labels: ['0', `${beamLength / 4}`, `${beamLength / 2}`, `${(3 * beamLength) / 4}`, `${beamLength}`],
+                    datasets: [{
+                        label: 'Bending Moment (k-ft)',
+                        data: bmdData,
+                        borderColor: '#FF5733',
+                        fill: false
+                    }]
+                }
+            });
+
+            // Create SFD Chart
+            const ctxSFD = document.getElementById('sfdChart').getContext('2d');
+            new Chart(ctxSFD, {
+                type: 'line',
+                data: {
+                    labels: ['0', `${beamLength / 4}`, `${beamLength / 2}`, `${(3 * beamLength) / 4}`, `${beamLength}`],
+                    datasets: [{
+                        label: 'Shear Force (kips)',
+                        data: sfdData,
+                        borderColor: '#33CFFF',
+                        fill: false
+                    }]
+                }
+            });
+        }
+    </script>
+</body>
+</html>
