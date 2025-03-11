@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCE 7-05 Seismic Loading Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .form-container {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 500px;
+            padding: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-header {
+            background-color: #e6f0fa;
+            padding: 5px 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .form-header h2 {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .section {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        .section h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #333;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+
+        .checkbox-group, .radio-group {
+            margin-bottom: 10px;
+        }
+
+        .checkbox-group label, .radio-group label {
+            display: block;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .input-group label {
+            width: 220px;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .input-group input, .input-group select {
+            width: 100px;
+            padding: 3px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        .input-group input:disabled {
+            background-color: #f0f0f0;
+        }
+
+        .input-group span {
+            margin-left: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .overwrite-btn {
+            margin-left: 10px;
+            padding: 3px 10px;
+            font-size: 12px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
+        .ok-btn, .cancel-btn {
+            padding: 5px 15px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .ok-btn {
+            background-color: #d0e0f0;
+        }
+
+        .cancel-btn {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">
+            <h2>ASCE 7-05 Seismic Loading</h2>
+        </div>
+        <form>
+            <!-- Direction Section -->
+            <div class="section">
+                <h3>Direction</h3>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" checked> X Dir</label>
+                    <label><input type="checkbox" checked> Y Dir</label>
+                </div>
+                <div class="checkbox-group">
+                    <label><input type="checkbox"> X Dir + Eccentricity</label>
+                    <label><input type="checkbox"> Y Dir + Eccentricity</label>
+                </div>
+                <div class="checkbox-group">
+                    <label><input type="checkbox"> X Dir - Eccentricity</label>
+                    <label><input type="checkbox"> Y Dir - Eccentricity</label>
+                </div>
+                <div class="input-group">
+                    <label>Ecc. Ratio (All Diaph.)</label>
+                    <input type="text" value="0.05">
+                    <button type="button" class="overwrite-btn">Overwrite...</button>
+                </div>
+            </div>
+
+            <!-- Seismic Coefficients Section -->
+            <div class="section">
+                <h3>Seismic Coefficients</h3>
+                <div class="radio-group">
+                    <label><input type="radio" name="seismic-coeff"> Ss and S1 from USGS Database - by Latitude/Longitude</label><br>
+                    <label><input type="radio" name="seismic-coeff"> Ss and S1 from USGS Database - by ZIP Code</label><br>
+                    <label><input type="radio" name="seismic-coeff" checked> Ss and S1 - User Defined</label>
+                </div>
+                <div class="input-group">
+                    <label>Site Latitude (degrees)</label>
+                    <input type="text" placeholder="?" disabled>
+                </div>
+                <div class="input-group">
+                    <label>Site Longitude (degrees)</label>
+                    <input type="text" placeholder="?" disabled>
+                </div>
+                <div class="input-group">
+                    <label>Site ZIP Code (5-Digits)</label>
+                    <input type="text" placeholder="?" disabled>
+                </div>
+                <div class="input-group">
+                    <label>0.2 Sec Spectral Accel., Ss</label>
+                    <input type="text" value="0.5">
+                </div>
+                <div class="input-group">
+                    <label>1 Sec Spectral Accel., S1</label>
+                    <input type="text" value="0.2">
+                </div>
+                <div class="input-group">
+                    <label>Long-Period Transition Period</label>
+                    <input type="text" value="2">
+                    <span>sec</span>
+                </div>
+                <div class="input-group">
+                    <label>Site Class</label>
+                    <select>
+                        <option>F</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Site Coefficient, Fa</label>
+                    <input type="text" value="1.35">
+                </div>
+                <div class="input-group">
+                    <label>Site Coefficient, Fv</label>
+                    <input type="text" value="2.7">
+                </div>
+                <div class="input-group">
+                    <label>Calculated Coefficients</label>
+                </div>
+                <div class="input-group">
+                    <label>SDS = (2/3) * Fa * Ss</label>
+                    <input type="text" value="N/A">
+                </div>
+                <div class="input-group">
+                    <label>SD1 = (2/3) * Fv * S1</label>
+                    <input type="text" value="N/A">
+                </div>
+            </div>
+
+            <!-- Time Period Section -->
+            <div class="section">
+                <h3>Time Period</h3>
+                <div class="radio-group">
+                    <label><input type="radio" name="time-period"> Approximate Ct (ft.), x = </label><br>
+                    <label><input type="radio" name="time-period"> Program Calculated Ct (ft.), x = </label><br>
+                    <label><input type="radio" name="time-period" checked> User Defined T = </label>
+                    <input type="text" value="0.73">
+                    <span>sec</span>
+                </div>
+            </div>
+
+            <!-- Story Range Section -->
+            <div class="section">
+                <h3>Story Range</h3>
+                <div class="input-group">
+                    <label>Top Story for Seismic Loads</label>
+                    <select>
+                        <option>Roof</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Bottom Story for Seismic Loads</label>
+                    <select>
+                        <option>Base</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Factors Section -->
+            <div class="section">
+                <h3>Factors</h3>
+                <div class="input-group">
+                    <label>Response Modification, R</label>
+                    <input type="text" value="3">
+                </div>
+                <div class="input-group">
+                    <label>System Overstrength, Omega</label>
+                    <input type="text" value="3">
+                </div>
+                <div class="input-group">
+                    <label>Deflection Amplification, Cd</label>
+                    <input type="text" value="2.5">
+                </div>
+                <div class="input-group">
+                    <label>Occupancy Importance, I</label>
+                    <input type="text" value="1.25">
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="button-group">
+                <button type="submit" class="ok-btn">OK</button>
+                <button type="button" class="cancel-btn">Cancel</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
